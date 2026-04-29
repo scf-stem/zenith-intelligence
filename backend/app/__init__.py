@@ -13,8 +13,11 @@ from app.blueprints.history import bp as history_bp
 from app.blueprints.model import model_bp
 from app.blueprints.achievement import achievement_bp
 from app.blueprints.course import course_bp
+from app.blueprints.feedback import feedback_bp
+from app.blueprints.site_analytics import site_analytics_bp
 from app.blueprints.stats import stats_bp
 from app.blueprints.programming import programming_bp
+from app.models import Feedback, SiteEvent, SiteVisit  # noqa: F401 - ensure table registration before create_all
 from app.config import config as config_map
 from app.extensions import cors, db, jwt, limiter
 from app.utils.errors import register_error_handlers
@@ -100,6 +103,8 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(course_bp, url_prefix="/api/course")
     app.register_blueprint(stats_bp, url_prefix="/api/stats")
     app.register_blueprint(programming_bp, url_prefix="/api/programming")
+    app.register_blueprint(feedback_bp, url_prefix="/api/feedback")
+    app.register_blueprint(site_analytics_bp, url_prefix="/api/site-analytics")
 
     register_error_handlers(app)
 

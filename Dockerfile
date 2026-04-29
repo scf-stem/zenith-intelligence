@@ -31,6 +31,8 @@ COPY --from=frontend-builder /app/frontend/dist /usr/share/nginx/html
 # 复制配置文件
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY supervisord.conf /etc/supervisor/conf.d/app.conf
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
 # 删除 Nginx 默认站点配置，防止冲突
 RUN rm -f /etc/nginx/sites-enabled/default
@@ -39,4 +41,5 @@ RUN rm -f /etc/nginx/sites-enabled/default
 ENV PORT=8080
 EXPOSE 8080
 
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/app.conf"]

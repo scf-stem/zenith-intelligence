@@ -2504,6 +2504,190 @@ body {
     }
 }
 
+/* Shared feedback widget */
+.feedback-fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 2000;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #1E40AF, #06B6D4);
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.app-feedback-fab {
+    bottom: 92px;
+}
+
+.feedback-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 48px rgba(30, 64, 175, 0.3);
+}
+
+.feedback-fab svg {
+    width: 18px;
+    height: 18px;
+}
+
+.feedback-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.feedback-modal.active {
+    display: flex;
+}
+
+.feedback-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(6px);
+}
+
+.feedback-panel {
+    position: relative;
+    width: min(100%, 480px);
+    background: var(--bg-primary);
+    border-radius: var(--border-radius-xl);
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+    overflow: hidden;
+    animation: fadeIn 0.22s ease;
+}
+
+.feedback-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 26px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+.feedback-header h2 {
+    margin: 0 0 6px;
+    color: var(--text-primary);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+}
+
+.feedback-header p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.feedback-close {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: white;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.feedback-close:hover {
+    color: var(--text-primary);
+    background: var(--gray-100);
+}
+
+.feedback-close svg {
+    width: 18px;
+    height: 18px;
+}
+
+.feedback-form {
+    padding: 26px;
+}
+
+.feedback-field {
+    margin-bottom: 18px;
+}
+
+.feedback-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+}
+
+.feedback-field select,
+.feedback-field input,
+.feedback-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    color: var(--text-primary);
+    background: white;
+    font-size: 15px;
+    padding: 12px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.feedback-field textarea {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.5;
+}
+
+.feedback-field select:focus,
+.feedback-field input:focus,
+.feedback-field textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.feedback-count {
+    margin-top: 6px;
+    text-align: right;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-xs);
+}
+
+.feedback-submit {
+    width: 100%;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E40AF, #06B6D4);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.feedback-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.feedback-modal-open {
+    overflow: hidden;
+}
+
 /* ========================================
    加载遮罩
    ======================================== */

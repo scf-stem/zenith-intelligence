@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Zenith Intelligence (极智学习) - 智能解题，拍照或输入题目即可获得详细解答">
     <title>Zenith Intelligence (极智学习) - 智能学习，从这里开始</title>
+    <script src="env.js"></script>
+    <script src="js/analytics.js" defer></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -229,6 +231,63 @@
         <span class="toast-message"></span>
     </div>
 
+    <!-- 用户反馈 -->
+    <button type="button" class="feedback-fab" id="feedback-open-btn" aria-label="提交反馈">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+        </svg>
+        <span>反馈</span>
+    </button>
+
+    <div class="feedback-modal" id="feedback-modal" aria-hidden="true">
+        <div class="feedback-backdrop" id="feedback-backdrop"></div>
+        <section class="feedback-panel" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+            <div class="feedback-header">
+                <div>
+                    <h2 id="feedback-title">提交反馈</h2>
+                    <p>告诉我们你遇到的问题或建议</p>
+                </div>
+                <button type="button" class="feedback-close" id="feedback-close-btn" aria-label="关闭反馈窗口">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="feedback-form" class="feedback-form">
+                <div class="form-group">
+                    <label for="feedback-category">反馈类型</label>
+                    <select id="feedback-category" name="category">
+                        <option value="general">一般反馈</option>
+                        <option value="bug">问题反馈</option>
+                        <option value="feature">功能建议</option>
+                        <option value="account">账号相关</option>
+                        <option value="content">内容建议</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedback-content">反馈内容</label>
+                    <textarea id="feedback-content" name="content" rows="5" maxlength="2000"
+                        placeholder="请描述你遇到的问题、建议或想法" required></textarea>
+                    <div class="feedback-count"><span id="feedback-count">0</span>/2000</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedback-contact">联系方式（选填）</label>
+                    <input type="text" id="feedback-contact" name="contact" maxlength="120"
+                        placeholder="邮箱、手机号或其他联系方式">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span class="btn-text">提交反馈</span>
+                    <span class="btn-loading" style="display: none;">提交中...</span>
+                </button>
+            </form>
+        </section>
+    </div>
+
     <script src="js/user.js?v=4"></script>
     <script>
         // 页面加载时检查是否已登录
@@ -243,6 +302,9 @@
 
             // 初始化特性轮播
             initFeatureCarousel();
+
+            // 初始化反馈入口
+            initFeedbackWidget();
 
             // 标签切换
             const tabBtns = document.querySelectorAll('.auth-tabs .tab-btn');
@@ -279,6 +341,7 @@
                     const result = await UserManager.login(username, password);
 
                     if (result.success) {
+                        trackEvent('login_success', { page: 'home' });
                         showToast('登录成功！正在跳转...', 'success');
                         setTimeout(() => {
                             window.location.href = 'app.html';
@@ -325,6 +388,7 @@
                     const result = await UserManager.register(userData);
 
                     if (result.success) {
+                        trackEvent('register_success', { page: 'home' });
                         showToast('注册成功！正在登录...', 'success');
 
                         // 自动登录
@@ -362,6 +426,102 @@
             setTimeout(() => {
                 toast.style.display = 'none';
             }, 3000);
+        }
+
+        function trackEvent(eventName, data = {}) {
+            if (window.ZenithAnalytics) {
+                window.ZenithAnalytics.track(eventName, data);
+            }
+        }
+
+        function initFeedbackWidget() {
+            const openBtn = document.getElementById('feedback-open-btn');
+            const closeBtn = document.getElementById('feedback-close-btn');
+            const backdrop = document.getElementById('feedback-backdrop');
+            const modal = document.getElementById('feedback-modal');
+            const form = document.getElementById('feedback-form');
+            const contentInput = document.getElementById('feedback-content');
+            const count = document.getElementById('feedback-count');
+
+            if (!openBtn || !closeBtn || !backdrop || !modal || !form || !contentInput || !count) {
+                return;
+            }
+
+            const openModal = () => {
+                modal.classList.add('active');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('feedback-modal-open');
+                contentInput.focus();
+                trackEvent('feedback_open', { page: 'home' });
+            };
+
+            const closeModal = () => {
+                modal.classList.remove('active');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('feedback-modal-open');
+            };
+
+            openBtn.addEventListener('click', openModal);
+            closeBtn.addEventListener('click', closeModal);
+            backdrop.addEventListener('click', closeModal);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('active')) {
+                    closeModal();
+                }
+            });
+
+            contentInput.addEventListener('input', () => {
+                count.textContent = contentInput.value.length;
+            });
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const category = document.getElementById('feedback-category').value;
+                const content = contentInput.value.trim();
+                const contact = document.getElementById('feedback-contact').value.trim();
+
+                if (content.length < 5) {
+                    showToast('反馈内容至少需要 5 个字符', 'error');
+                    return;
+                }
+
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.querySelector('.btn-text').style.display = 'none';
+                submitBtn.querySelector('.btn-loading').style.display = 'inline';
+
+                try {
+                    const response = await UserManager.fetchApi('/api/feedback', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            category,
+                            content,
+                            contact,
+                            pageUrl: window.location.href
+                        })
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.error || '提交失败');
+                    }
+
+                    trackEvent('feedback_submit_success', { page: 'home', category });
+                    showToast('反馈已提交，感谢你的建议', 'success');
+                    form.reset();
+                    count.textContent = '0';
+                    closeModal();
+                } catch (error) {
+                    trackEvent('feedback_submit_error', { page: 'home', category });
+                    showToast(error.message || '反馈提交失败，请稍后重试', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.querySelector('.btn-text').style.display = 'inline';
+                    submitBtn.querySelector('.btn-loading').style.display = 'none';
+                }
+            });
         }
 
         // 切换标签页
@@ -571,6 +731,167 @@
             height: 20px;
         }
 
+        .feedback-fab {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            z-index: 2000;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #1E40AF, #06B6D4);
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .feedback-fab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 48px rgba(30, 64, 175, 0.3);
+        }
+
+        .feedback-fab svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .feedback-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .feedback-modal.active {
+            display: flex;
+        }
+
+        .feedback-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.48);
+            backdrop-filter: blur(6px);
+        }
+
+        .feedback-panel {
+            position: relative;
+            width: min(100%, 480px);
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-xl);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+            overflow: hidden;
+            animation: fadeIn 0.22s ease;
+        }
+
+        .feedback-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 24px 26px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        .feedback-header h2 {
+            margin: 0 0 6px;
+            color: var(--text-primary);
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+        }
+
+        .feedback-header p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .feedback-close {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 50%;
+            background: white;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .feedback-close:hover {
+            color: var(--text-primary);
+            background: var(--gray-100);
+        }
+
+        .feedback-close svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .feedback-form {
+            padding: 26px;
+        }
+
+        .feedback-form .form-group {
+            margin-bottom: 18px;
+        }
+
+        .feedback-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+        }
+
+        .feedback-form select,
+        .feedback-form input,
+        .feedback-form textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            color: var(--text-primary);
+            font-size: 15px;
+            padding: 12px 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .feedback-form textarea {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.5;
+        }
+
+        .feedback-form select:focus,
+        .feedback-form input:focus,
+        .feedback-form textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .feedback-count {
+            margin-top: 6px;
+            text-align: right;
+            color: var(--text-tertiary);
+            font-size: var(--font-size-xs);
+        }
+
+        .feedback-modal-open {
+            overflow: hidden;
+        }
+
         /* 密码输入框包装 */
         .password-input-wrapper {
             position: relative;
@@ -761,6 +1082,24 @@
 
         .auth-form .form-group .terms-checkbox a:hover {
             text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .feedback-fab {
+                right: 16px;
+                bottom: 16px;
+                padding: 11px 15px;
+            }
+
+            .feedback-panel {
+                max-height: calc(100vh - 32px);
+                overflow-y: auto;
+            }
+
+            .feedback-header,
+            .feedback-form {
+                padding: 20px;
+            }
         }
     </style>
 </body>

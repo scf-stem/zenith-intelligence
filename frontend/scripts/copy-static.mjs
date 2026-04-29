@@ -27,7 +27,12 @@ for (const entry of readdirSync(distDir)) {
 
 for (const entry of sourceHtmlEntries) {
   cpSync(join(rootDir, entry), join(distDir, entry));
-  }
+}
+
+const envFile = join(rootDir, "env.js");
+if (existsSync(envFile)) {
+  cpSync(envFile, join(distDir, "env.js"));
+}
 
 for (const directory of ["css", "js"]) {
   const sourcePath = join(rootDir, directory);
