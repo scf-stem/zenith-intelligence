@@ -127,8 +127,15 @@
         }
 
         .panel h2 {
-            margin: 0 0 16px;
+            margin: 0;
             font-size: 17px;
+        }
+
+        .section-help {
+            margin: 6px 0 16px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
         }
 
         .trend {
@@ -328,12 +335,12 @@
 
         <section class="grid metrics">
             <div class="panel">
-                <div class="metric-label">浏览量 PV</div>
+                <div class="metric-label">页面浏览量</div>
                 <div class="metric-value" id="metric-pv">0</div>
                 <div class="metric-note">页面访问次数</div>
             </div>
             <div class="panel">
-                <div class="metric-label">独立访客 UV</div>
+                <div class="metric-label">独立访客数</div>
                 <div class="metric-value" id="metric-uv">0</div>
                 <div class="metric-note">按匿名访客 ID 去重</div>
             </div>
@@ -362,15 +369,18 @@
 
         <section class="grid three-col">
             <div class="panel">
-                <h2>热门页面</h2>
+                <h2>页面访问排行</h2>
+                <p class="section-help">查看哪些页面被访问最多，以及每页的访客和停留情况。</p>
                 <div class="list" id="page-list"></div>
             </div>
             <div class="panel">
-                <h2>事件排行</h2>
+                <h2>用户操作统计</h2>
+                <p class="section-help">统计用户完成的关键操作，例如注册、登录和反馈提交。</p>
                 <div class="list" id="event-list"></div>
             </div>
             <div class="panel">
-                <h2>最近访问</h2>
+                <h2>最近访客记录</h2>
+                <p class="section-help">按时间查看最近访问的页面和本次停留时长。</p>
                 <div class="list" id="recent-list"></div>
             </div>
         </section>
@@ -455,13 +465,43 @@
             archived: '已归档'
         };
 
+        const pageLabels = {
+            '/': '首页',
+            '/index.html': '首页',
+            '/app.html': '智能解题页',
+            '/dashboard.html': '站长统计页',
+            '/courses.html': '课程中心',
+            '/learning.html': '学习界面',
+            '/stats.html': '学习统计页',
+            '/profile.html': '个人中心',
+            '/programming.html': '编程助手'
+        };
+
+        const eventLabels = {
+            feedback_open: '打开反馈窗口',
+            feedback_submit_success: '提交反馈成功',
+            feedback_submit_error: '提交反馈失败',
+            feedback_status_update: '更新反馈状态',
+            login_success: '登录成功',
+            register_success: '注册成功',
+            manual_test: '手动测试事件'
+        };
+
+        function displayPage(path) {
+            return pageLabels[path] || path || '未知页面';
+        }
+
+        function displayEvent(eventName) {
+            return eventLabels[eventName] || eventName || '未知操作';
+        }
+
         function renderTrend(trend) {
             const chart = document.getElementById('trend-chart');
             chart.style.setProperty('--days', trend.length || 1);
             const maxPv = Math.max(1, ...trend.map(item => item.pv));
             chart.innerHTML = trend.map(item => {
                 const height = Math.max(4, Math.round((item.pv / maxPv) * 220));
-                return `<div class="bar" style="height:${height}px" data-label="${item.date} · PV ${item.pv} · UV ${item.uv}"></div>`;
+                return `<div class="bar" style="height:${height}px" data-label="${item.date} · 浏览量 ${item.pv} · 访客 ${item.uv}"></div>`;
             }).join('');
         }
 
@@ -498,18 +538,18 @@
                 setRows('page-list', data.pages, item => `
                     <div class="row">
                         <div class="row-main">
-                            <div class="row-title">${escapeHtml(item.path)}</div>
-                            <div class="row-sub">UV ${formatNumber(item.uv)} · 平均 ${formatDuration(item.avgDuration)}</div>
+                            <div class="row-title">${escapeHtml(displayPage(item.path))}</div>
+                            <div class="row-sub">${escapeHtml(item.path)} · 访客 ${formatNumber(item.uv)} · 平均停留 ${formatDuration(item.avgDuration)}</div>
                         </div>
-                        <span class="pill">PV ${formatNumber(item.pv)}</span>
+                        <span class="pill">浏览量 ${formatNumber(item.pv)}</span>
                     </div>
                 `, '暂无页面数据');
 
                 setRows('event-list', data.events, item => `
                     <div class="row">
                         <div class="row-main">
-                            <div class="row-title">${escapeHtml(item.eventName)}</div>
-                            <div class="row-sub">自定义事件</div>
+                            <div class="row-title">${escapeHtml(displayEvent(item.eventName))}</div>
+                            <div class="row-sub">事件代码：${escapeHtml(item.eventName)}</div>
                         </div>
                         <span class="pill">${formatNumber(item.count)}</span>
                     </div>
@@ -518,8 +558,8 @@
                 setRows('recent-list', data.recentVisits, item => `
                     <div class="row">
                         <div class="row-main">
-                            <div class="row-title">${escapeHtml(item.path)}</div>
-                            <div class="row-sub">${new Date(item.createdAt).toLocaleString('zh-CN')}</div>
+                            <div class="row-title">${escapeHtml(displayPage(item.path))}</div>
+                            <div class="row-sub">${escapeHtml(item.path)} · ${new Date(item.createdAt).toLocaleString('zh-CN')}</div>
                         </div>
                         <span class="pill">${formatDuration(item.duration)}</span>
                     </div>
