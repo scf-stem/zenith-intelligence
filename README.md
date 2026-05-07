@@ -174,7 +174,8 @@ PYTHONPATH=backend backend/.venv/bin/python -m unittest tests.test_deepseek_prov
 默认使用 SQLite：
 
 ```text
-backend/data/app.db
+开发环境：backend/data/app.db
+生产环境：/data/app.db
 ```
 
-反馈数据、学习数据和站长统计数据都会写入该数据库。生产部署如需长期保存数据，建议配置 Zeabur 持久化卷，或后续切换到托管数据库。
+反馈数据、学习数据、用户账号和站长统计数据都会写入该数据库。Zeabur 生产环境默认使用挂载目录 `/data`，对应数据库文件为 `/data/app.db`。如需使用其他挂载目录，可设置 `ZENITH_DATA_DIR=/your/mount/path`；如需切换到托管数据库，可设置 `DATABASE_URL` 覆盖默认 SQLite。

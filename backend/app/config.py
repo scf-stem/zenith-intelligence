@@ -24,15 +24,30 @@ def _to_int(value: str, default: int) -> int:
         return default
 
 
+def _env_name() -> str:
+    return os.getenv("FLASK_ENV", os.getenv("NODE_ENV", "development"))
+
+
+def _default_sqlite_path() -> Path:
+    data_dir = os.getenv("ZENITH_DATA_DIR") or os.getenv("DATA_DIR")
+    if data_dir:
+        return Path(data_dir) / "app.db"
+    if _env_name() == "production":
+        return Path("/data") / "app.db"
+    return BASE_DIR / "data" / "app.db"
+
+
+def _database_uri() -> str:
+    return os.getenv("DATABASE_URL", f"sqlite:///{_default_sqlite_path()}")
+
+
 class Config:
-    FLASK_ENV = os.getenv("FLASK_ENV", os.getenv("NODE_ENV", "development"))
+    FLASK_ENV = _env_name()
     DEBUG = FLASK_ENV == "development"
     TESTING = False
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL", f"sqlite:///{BASE_DIR / 'data' / 'app.db'}"
-    )
+    SQLALCHEMY_DATABASE_URI = _database_uri()
 
     JWT_SECRET_KEY = os.getenv("JWT_SECRET", "zenith-intelligence-secret-key")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)

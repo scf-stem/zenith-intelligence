@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from urllib.parse import unquote
 
 from flask import Flask, jsonify
 
@@ -32,14 +33,33 @@ def _rate_limit_rule(max_requests: int, window_seconds: int) -> str:
     return f"{max_requests} per {window_seconds} {unit}"
 
 
+def _sqlite_database_path(database_uri: str) -> Path | None:
+    for prefix in ("sqlite:///", "sqlite+pysqlite:///"):
+        if database_uri.startswith(prefix):
+            raw_path = unquote(database_uri[len(prefix):])
+            if raw_path in {"", ":memory:"}:
+                return None
+            path = Path(raw_path)
+            if not path.is_absolute():
+                path = Path.cwd() / path
+            return path
+    return None
+
+
 def _create_all_with_lock(app: Flask) -> None:
     with app.app_context():
+        sqlite_path = _sqlite_database_path(app.config["SQLALCHEMY_DATABASE_URI"])
+        if sqlite_path is None:
+            db.create_all()
+            return
+
+        sqlite_path.parent.mkdir(parents=True, exist_ok=True)
+
         if os.name != "posix":
             db.create_all()
             return
 
-        lock_path = Path(app.root_path).parent / "data" / ".schema.lock"
-        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        lock_path = sqlite_path.parent / ".schema.lock"
 
         with lock_path.open("w", encoding="utf-8") as lock_file:
             import fcntl

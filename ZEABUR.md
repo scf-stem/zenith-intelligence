@@ -13,6 +13,8 @@
    - `DEEPSEEK_MODEL`：默认 `deepseek-v4-flash`。
    - `DEFAULT_MODEL_PROVIDER`：默认 `deepseek`。
    - `ARK_API_KEY`：图片识别需要；纯文本解题不需要。
+   - `ZENITH_DATA_DIR`：SQLite 数据目录，Zeabur 挂载盘为 `/data` 时可设置为 `/data`；不设置时生产环境也默认使用 `/data`。
+   - `DATABASE_URL`：可选；设置后会覆盖默认 SQLite，例如 `sqlite:////data/app.db` 或 PostgreSQL 连接串。
    - `PORT`：Zeabur 会自动注入；不需要手动设置时默认 `8080`。
    - `VITE_API_BASE_URL`：通常留空，前端会同源访问 `/api`。
 
@@ -24,4 +26,24 @@
 
 ## 数据说明
 
-当前学习数据、反馈数据和站长统计数据默认写入 SQLite：`backend/data/app.db`。如果 Zeabur 服务没有持久化存储，重新部署或重建容器可能导致 SQLite 数据丢失。生产环境建议在 Zeabur 配置持久化卷，或后续切换到托管数据库。
+当前用户账号、学习数据、反馈数据和站长统计数据默认写入 SQLite。开发环境路径为 `backend/data/app.db`，生产环境路径为 `/data/app.db`，与 Zeabur 持久硬盘挂载目录一致。
+
+如果 Zeabur 已挂载硬盘到 `/data`，无需额外设置也会写入：
+
+```text
+/data/app.db
+```
+
+建议显式添加环境变量，便于后续排查：
+
+```text
+ZENITH_DATA_DIR=/data
+```
+
+如果需要完整覆盖数据库连接，也可以设置：
+
+```text
+DATABASE_URL=sqlite:////data/app.db
+```
+
+注意：`DATABASE_URL` 优先级高于 `ZENITH_DATA_DIR`。如果使用 PostgreSQL，则直接将 `DATABASE_URL` 设置为 PostgreSQL 连接串。
