@@ -288,6 +288,11 @@ body {
     padding: 0 10px;
 }
 
+.zenith-network-pill {
+    min-width: 58px;
+    justify-content: center;
+}
+
 .zenith-status-dot {
     width: 9px;
     height: 9px;
@@ -394,8 +399,12 @@ body {
         font-size: 15px;
     }
 
-    .zenith-status-pill {
-        display: none;
+    .zenith-network-pill {
+        display: inline-flex;
+        flex: 0 0 auto;
+        min-width: 54px;
+        padding: 0 8px;
+        font-size: 11px;
     }
 
     .zenith-status-cluster {

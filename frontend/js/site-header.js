@@ -68,16 +68,9 @@
                     `).join('')}
                 </nav>
                 <div class="zenith-status-cluster">
-                    <div class="zenith-status-pill" title="Backend status">
+                    <div class="zenith-status-pill zenith-network-pill" id="site-backend-pill" title="Backend status">
                         <span class="zenith-status-dot" id="site-backend-dot"></span>
-                        <span data-i18n="status.network">${t('status.network', 'Network')}</span>
-                        <span id="site-backend-status" data-i18n="status.unknown">${t('status.unknown', 'Unknown')}</span>
                         <span id="site-backend-delay"></span>
-                    </div>
-                    <div class="zenith-status-pill" title="Model status">
-                        <span class="zenith-model-mark">DS</span>
-                        <span data-i18n="site.model">${t('site.model', 'DeepSeek V4 Flash')}</span>
-                        <span id="site-model-status" data-i18n="status.unknown">${t('status.unknown', 'Unknown')}</span>
                     </div>
                     <label class="zenith-language-select">
                         <span data-i18n="lang.label">${t('lang.label', 'Language')}</span>
@@ -106,24 +99,14 @@
     }
 
     function setBackendStatus(healthy, statusKey, delay) {
+        const pill = document.getElementById('site-backend-pill');
         const dot = document.getElementById('site-backend-dot');
-        const status = document.getElementById('site-backend-status');
         const delayNode = document.getElementById('site-backend-delay');
+        const statusLabel = t(statusKey, healthy ? 'Online' : 'Offline');
+        if (pill) pill.setAttribute('title', delay ? `${statusLabel} ${delay}ms` : statusLabel);
         if (dot) dot.className = `zenith-status-dot ${healthy ? 'online' : 'offline'}`;
-        if (status) {
-            status.setAttribute('data-i18n', statusKey);
-            status.textContent = t(statusKey, healthy ? 'Online' : 'Offline');
-        }
         if (delayNode) {
             delayNode.textContent = healthy && delay ? `${delay}ms` : '';
-        }
-    }
-
-    function setModelStatus(healthy, statusKey) {
-        const status = document.getElementById('site-model-status');
-        if (status) {
-            status.setAttribute('data-i18n', statusKey);
-            status.textContent = t(statusKey, healthy ? 'Online' : 'Offline');
         }
     }
 
@@ -135,14 +118,6 @@
             setBackendStatus(Boolean(data.success), data.success ? 'status.online' : 'status.offline', Math.round(performance.now() - start));
         } catch (error) {
             setBackendStatus(false, 'status.offline');
-        }
-
-        try {
-            const response = await fetchApi('/api/model/providers/deepseek/health');
-            const data = await response.json();
-            setModelStatus(Boolean(data.success && data.data && data.data.healthy), data.success && data.data && data.data.healthy ? 'status.online' : 'status.offline');
-        } catch (error) {
-            setModelStatus(false, 'status.unknown');
         }
 
         if (window.ZenithI18n) {
