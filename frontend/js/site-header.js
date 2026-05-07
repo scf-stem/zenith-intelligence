@@ -37,6 +37,10 @@
             if (legacyHeader && !legacyHeader.classList.contains('zenith-unified-header')) {
                 legacyHeader.remove();
             }
+            const appTab = document.querySelector('.nav-tab');
+            if (appTab && appTab.parentElement) {
+                appTab.parentElement.remove();
+            }
         }
         if (page === 'learning.html') {
             const learningHeader = document.querySelector('.header');
