@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(scriptDir, "..");
+const repoDir = resolve(rootDir, "..");
 const distDir = resolve(rootDir, "dist");
 
 mkdirSync(distDir, { recursive: true });
@@ -35,9 +36,14 @@ if (existsSync(envFile)) {
 }
 
 for (const directory of ["css", "js"]) {
-  const sourcePath = join(rootDir, directory);
+    const sourcePath = join(rootDir, directory);
 
-  if (existsSync(sourcePath)) {
-    cpSync(sourcePath, join(distDir, directory), { recursive: true });
-  }
+    if (existsSync(sourcePath)) {
+        cpSync(sourcePath, join(distDir, directory), { recursive: true });
+    }
+}
+
+const docsPath = join(repoDir, "Docs");
+if (existsSync(docsPath)) {
+  cpSync(docsPath, join(distDir, "Docs"), { recursive: true });
 }
