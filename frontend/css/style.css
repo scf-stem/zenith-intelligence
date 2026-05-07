@@ -2762,12 +2762,13 @@ body {
 /* Toast 通知组件增强 */
 .toast-container {
     position: fixed;
-    top: var(--spacing-lg);
+    top: 116px;
     right: var(--spacing-lg);
     z-index: 10000;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
+    width: min(420px, calc(100vw - 48px));
 }
 
 .toast-item {
@@ -2779,7 +2780,18 @@ body {
     border-radius: var(--border-radius-md);
     box-shadow: var(--shadow-lg);
     animation: toastSlideIn 0.3s ease-out;
-    min-width: 280px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.toast-item svg {
+    flex: 0 0 auto;
+}
+
+.toast-item span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 @keyframes toastSlideIn {
@@ -2823,6 +2835,15 @@ body {
     to {
         opacity: 0;
         transform: translateX(100%);
+    }
+}
+
+@media (max-width: 680px) {
+    .toast-container {
+        top: 202px;
+        left: 16px;
+        right: 16px;
+        width: auto;
     }
 }
 

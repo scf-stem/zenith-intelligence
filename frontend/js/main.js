@@ -227,12 +227,10 @@ async function checkBackendStatus() {
             updateBackendStatus(true, '在线', delay);
         } else {
             updateBackendStatus(false, '离线');
-            showWarning('后端服务离线，部分功能可能无法使用');
         }
     } catch (error) {
         console.error('检查后端状态失败:', error);
         updateBackendStatus(false, '离线');
-        showWarning('无法连接到后端服务，请检查网络连接');
     }
 }
 
@@ -371,7 +369,6 @@ async function checkModelHealth() {
                 updateModelStatus(true, '在线');
             } else {
                 updateModelStatus(false, '离线');
-                showWarning('AI模型离线，解题功能可能无法使用');
             }
         } else {
             updateModelStatus(false, '未知');
@@ -379,7 +376,6 @@ async function checkModelHealth() {
     } catch (error) {
         console.error('检查模型健康状态失败:', error);
         updateModelStatus(false, '未知');
-        showWarning('无法检查AI模型状态，请稍后重试');
     }
 }
 
