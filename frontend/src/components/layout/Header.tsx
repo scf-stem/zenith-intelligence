@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../../store/slices/userSlice';
 import type { RootState } from '../../store';
 import Button from '../ui/Button';
+import { useI18n } from '../../i18n';
 
 const Header: React.FC = () => {
   const userState = useSelector((state: RootState) => state.user);
@@ -11,6 +12,7 @@ const Header: React.FC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { locale, setLocale, t } = useI18n();
 
   const handleLogout = () => {
     dispatch(logout());
@@ -27,12 +29,21 @@ const Header: React.FC = () => {
             </svg>
           </div>
           <h1 className="text-xl font-bold text-gray-900 md:text-2xl tracking-tight">
-            AI学习助手
+            {t('appName')}
           </h1>
         </div>
         <div className="flex items-center space-x-3">
-          {/* 搜索图标 */}
-          <button className="p-2 text-gray-600 hover:text-primary transition-colors rounded-full hover:bg-gray-50">
+          <select
+            value={locale}
+            onChange={(event) => setLocale(event.target.value as 'en' | 'zh-CN')}
+            className="h-9 rounded-full border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700"
+            aria-label="Language"
+          >
+            <option value="en">EN</option>
+            <option value="zh-CN">中文</option>
+          </select>
+
+          <button className="p-2 text-gray-600 hover:text-primary transition-colors rounded-full hover:bg-gray-50" aria-label={t('search')}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -55,7 +66,7 @@ const Header: React.FC = () => {
               >
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-medium text-gray-900">{name}</p>
-                  <p className="text-xs text-gray-500">个人中心</p>
+                  <p className="text-xs text-gray-500">{t('profileCenter')}</p>
                 </div>
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center shadow-sm">
                   {name?.charAt(0)?.toUpperCase() || 'U'}
@@ -65,17 +76,17 @@ const Header: React.FC = () => {
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 animate-slide-in">
                   <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    个人资料
+                    {t('profileDetails')}
                   </Link>
                   <Link to="/stats" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                    学习统计
+                    {t('learningStats')}
                   </Link>
                   <div className="border-t border-gray-100 my-1"></div>
                   <button 
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors"
                   >
-                    退出登录
+                    {t('logout')}
                   </button>
                 </div>
               )}
@@ -83,7 +94,7 @@ const Header: React.FC = () => {
           ) : (
             <Button asChild>
               <Link to="/login">
-                登录
+                {t('login')}
               </Link>
             </Button>
           )}

@@ -138,8 +138,11 @@ frontend/dashboard.html
 
 ```text
 JWT_SECRET=生产环境随机密钥
-CHATGLM_API_KEY=你的模型服务密钥
-DEFAULT_MODEL_PROVIDER=minimax
+DEEPSEEK_API_KEY=你的 DeepSeek API Key
+DEEPSEEK_API_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-v4-flash
+DEFAULT_MODEL_PROVIDER=deepseek
+ARK_API_KEY=你的 Ark/Doubao 视觉模型 Key（图片识别需要）
 VITE_API_BASE_URL=
 ```
 
@@ -163,7 +166,7 @@ npm run build
 后端测试：
 
 ```bash
-PYTHONPATH=backend backend/.venv/bin/python -m unittest tests.test_feedback tests.test_site_analytics
+PYTHONPATH=backend backend/.venv/bin/python -m unittest tests.test_deepseek_provider tests.test_feedback tests.test_site_analytics
 ```
 
 ## 数据存储

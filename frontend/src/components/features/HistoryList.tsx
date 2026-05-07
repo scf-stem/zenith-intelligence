@@ -1,5 +1,6 @@
 import React from 'react';
 import Card from '../ui/Card';
+import { useI18n } from '../../i18n';
 
 interface Problem {
   id: string;
@@ -15,14 +16,15 @@ interface HistoryListProps {
 }
 
 const HistoryList: React.FC<HistoryListProps> = ({ history, onSelectHistory }) => {
+  const { t } = useI18n();
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleString();
   };
 
   return (
-    <Card header={<h3 className="text-lg font-semibold text-dark">历史记录</h3>}>
+    <Card header={<h3 className="text-lg font-semibold text-dark">{t('history')}</h3>}>
       {history.length === 0 ? (
-        <p className="text-gray-600 py-8 text-center">暂无历史记录</p>
+        <p className="text-gray-600 py-8 text-center">{t('noHistory')}</p>
       ) : (
         <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
           {history.map((item) => (
@@ -34,14 +36,14 @@ const HistoryList: React.FC<HistoryListProps> = ({ history, onSelectHistory }) =
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="text-sm font-medium text-dark truncate">
-                    {item.type === 'text' ? item.content.substring(0, 50) + (item.content.length > 50 ? '...' : '') : '图片问题'}
+                    {item.type === 'text' ? item.content.substring(0, 50) + (item.content.length > 50 ? '...' : '') : t('imageProblem')}
                   </div>
                   <div className="text-xs text-gray-500 mt-2">
                     {formatDate(item.timestamp)}
                   </div>
                 </div>
                 <div className="ml-3 text-xs px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">
-                  {item.type === 'text' ? '文本' : '图片'}
+                  {item.type === 'text' ? t('text') : t('image')}
                 </div>
               </div>
             </div>

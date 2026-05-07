@@ -162,6 +162,238 @@ body {
    导航菜单
    ======================================== */
 
+.zenith-unified-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.82);
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.zenith-unified-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: min(1280px, calc(100% - 32px));
+    min-height: 68px;
+    margin: 0 auto;
+}
+
+.zenith-brand {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 10px;
+    color: var(--slate-900);
+    text-decoration: none;
+}
+
+.zenith-brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    color: white;
+    background: linear-gradient(135deg, #2563eb, #0891b2);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.22);
+}
+
+.zenith-brand-icon svg,
+.zenith-nav-link svg,
+.zenith-logout-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.zenith-brand-text {
+    font-weight: 800;
+    font-size: 17px;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.zenith-main-nav {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    gap: 4px;
+    min-width: 0;
+    overflow-x: auto;
+    padding: 4px;
+    scrollbar-width: none;
+}
+
+.zenith-main-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.zenith-nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 12px;
+    border-radius: 8px;
+    color: var(--slate-600);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.zenith-nav-link:hover {
+    color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.zenith-nav-link.active {
+    color: #fff;
+    background: var(--primary-color);
+}
+
+.zenith-status-cluster {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+    gap: 8px;
+}
+
+.zenith-status-pill,
+.zenith-language-select,
+.zenith-login-link,
+.zenith-user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    border: 1px solid var(--slate-200);
+    border-radius: 999px;
+    background: rgba(248, 250, 252, 0.9);
+    color: var(--slate-600);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.zenith-status-pill {
+    padding: 0 10px;
+}
+
+.zenith-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--slate-400);
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.16);
+}
+
+.zenith-status-dot.online {
+    background: var(--success-color);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+}
+
+.zenith-status-dot.offline {
+    background: var(--error-color);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+}
+
+.zenith-model-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 20px;
+    border-radius: 6px;
+    background: #ecfeff;
+    color: #0e7490;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.zenith-language-select {
+    padding: 0 8px 0 10px;
+}
+
+.zenith-language-select select {
+    min-height: 26px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--slate-700);
+    font-weight: 800;
+}
+
+.zenith-login-link {
+    padding: 0 12px;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.zenith-user-chip {
+    padding: 0 10px 0 4px;
+    cursor: pointer;
+}
+
+.zenith-user-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.zenith-logout-icon {
+    display: inline-flex;
+    color: var(--slate-400);
+}
+
+@media (max-width: 980px) {
+    .zenith-unified-inner {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px 0;
+    }
+
+    .zenith-main-nav {
+        order: 3;
+        width: 100%;
+        flex-basis: 100%;
+    }
+
+    .zenith-status-cluster {
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 680px) {
+    .zenith-brand-text {
+        font-size: 15px;
+    }
+
+    .zenith-status-pill {
+        display: none;
+    }
+
+    .zenith-nav-link {
+        min-width: 86px;
+    }
+}
+
 .nav-menu {
     margin-bottom: var(--spacing-xl);
     background: rgba(255, 255, 255, 0.85);

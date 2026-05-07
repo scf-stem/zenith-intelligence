@@ -1,4 +1,4 @@
-"""Model provider abstraction for MiniMax-based text support."""
+"""Model provider abstraction for DeepSeek-based text support."""
 
 from __future__ import annotations
 
@@ -53,22 +53,29 @@ class BaseModelProvider(ABC):
         return current_app.config.get(config_key, default)
 
 
-class MiniMaxProvider(BaseModelProvider):
-    """MiniMax text provider using the OpenAI-compatible chat completions API."""
+class DeepSeekProvider(BaseModelProvider):
+    """DeepSeek text provider using the OpenAI-compatible chat completions API."""
 
-    name = "minimax"
-    display_name = "MiniMax-M2.7-highspeed"
+    name = "deepseek"
+    display_name = "DeepSeek V4 Flash"
 
     def __init__(self):
         self._parser = ChatGLMService()
 
     def _request(self, data: dict, stream: bool = False) -> requests.Response:
-        api_key = self.get_config("API_KEY") or current_app.config.get("MINIMAX_API_KEY")
-        api_url = self.get_config("API_URL") or current_app.config.get("MINIMAX_API_URL")
+        api_key = self.get_config("API_KEY") or current_app.config.get("DEEPSEEK_API_KEY")
+        api_url = self.get_config("API_URL") or current_app.config.get("DEEPSEEK_API_URL")
         timeout = current_app.config.get("REQUEST_TIMEOUT", 120)
 
         if not api_key:
-            raise APIError("MiniMax API Key 未配置", 500)
+            raise APIError("DeepSeek API Key 未配置", 500)
+
+        api_url = (api_url or "https://api.deepseek.com").rstrip("/")
+        completion_url = (
+            api_url
+            if api_url.endswith("/chat/completions")
+            else f"{api_url}/chat/completions"
+        )
 
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -77,7 +84,7 @@ class MiniMaxProvider(BaseModelProvider):
 
         try:
             response = requests.post(
-                api_url,
+                completion_url,
                 json=data,
                 headers=headers,
                 timeout=timeout,
@@ -95,7 +102,7 @@ class MiniMaxProvider(BaseModelProvider):
                     detail = exc.response.text
             if detail:
                 message = f"{message}; {detail}"
-            raise APIError(f"MiniMax API 错误: {message}", 500) from exc
+            raise APIError(f"DeepSeek API 错误: {message}", 500) from exc
 
     def _build_request(
         self,
@@ -103,13 +110,16 @@ class MiniMaxProvider(BaseModelProvider):
         temperature: float,
         max_tokens: int,
         stream: bool = False,
+        json_response: bool = False,
     ) -> dict:
         request_data = {
-            "model": self.get_config("MODEL", "MiniMax-M2.7-highspeed"),
+            "model": self.get_config("MODEL", "deepseek-v4-flash"),
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
+        if json_response:
+            request_data["response_format"] = {"type": "json_object"}
         if stream:
             request_data["stream"] = True
         return request_data
@@ -118,10 +128,10 @@ class MiniMaxProvider(BaseModelProvider):
         try:
             message = payload["choices"][0]["message"]
         except (KeyError, IndexError, TypeError) as exc:
-            raise APIError("MiniMax 响应结构异常", 500) from exc
+            raise APIError("DeepSeek 响应结构异常", 500) from exc
 
         if not isinstance(message, dict):
-            raise APIError("MiniMax 响应结构异常: message is not a dict", 500)
+            raise APIError("DeepSeek 响应结构异常: message is not a dict", 500)
 
         content = ChatGLMService._normalize_text_content(message.get("content", "") or "")
         if content:
@@ -133,7 +143,7 @@ class MiniMaxProvider(BaseModelProvider):
         if reasoning:
             return reasoning
 
-        raise APIError("MiniMax 未返回有效内容", 500)
+        raise APIError("DeepSeek 未返回有效内容", 500)
 
     def complete(
         self,
@@ -149,6 +159,7 @@ class MiniMaxProvider(BaseModelProvider):
             ],
             temperature=temperature,
             max_tokens=max_tokens,
+            json_response=True,
         )
         response = self._request(request_data)
         return self._extract_message_text(response.json())
@@ -181,7 +192,7 @@ class MiniMaxProvider(BaseModelProvider):
             return self._parser._coerce_parse_result(parsed, text)
         except APIError:
             current_app.logger.warning(
-                "MiniMax 解析返回非标准 JSON，降级提取字段。content=%s",
+                "DeepSeek 解析返回非标准 JSON，降级提取字段。content=%s",
                 content[:600],
             )
             return self._parser._extract_fields_from_text(content, text)
@@ -312,11 +323,11 @@ class ModelProviderFactory:
     """Factory for creating model providers."""
 
     _providers: Dict[str, type[BaseModelProvider]] = {
-        "minimax": MiniMaxProvider,
+        "deepseek": DeepSeekProvider,
     }
     _aliases: Dict[str, str] = {
-        "chatglm": "minimax",
-        "deepseek": "minimax",
+        "chatglm": "deepseek",
+        "minimax": "deepseek",
     }
 
     @classmethod

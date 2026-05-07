@@ -6,6 +6,7 @@ import ProblemInput from '../../components/features/ProblemInput';
 import SolutionDisplay from '../../components/features/SolutionDisplay';
 import ModelSelector from '../../components/features/ModelSelector';
 import HistoryList from '../../components/features/HistoryList';
+import { useI18n } from '../../i18n';
 
 interface Problem {
   id: string;
@@ -17,18 +18,19 @@ interface Problem {
 
 const AppPage: React.FC = () => {
   const user = useSelector((state: RootState) => state.user);
-  const [selectedModel, setSelectedModel] = useState('MiniMax-M2.7-highspeed');
+  const [selectedModel, setSelectedModel] = useState('DeepSeek V4 Flash');
   const [isLoading, setIsLoading] = useState(false);
   const [solution, setSolution] = useState('');
   const [history, setHistory] = useState<Problem[]>([]);
+  const { t } = useI18n();
 
   const handleSubmit = async (type: 'text' | 'image', content: string) => {
     setIsLoading(true);
     // 模拟API调用
     setTimeout(() => {
       const newSolution = type === 'text' 
-        ? `这是对问题 "${content}" 的解答（使用模型：${selectedModel}）`
-        : '这是对图片问题的解答（使用模型：' + selectedModel + '）';
+        ? `Solution for "${content}" (model: ${selectedModel})`
+        : `Solution for the uploaded image (model: ${selectedModel})`;
       
       const newProblem: Problem = {
         id: Date.now().toString(),
@@ -52,15 +54,15 @@ const AppPage: React.FC = () => {
     <div className="space-y-8 animate-fade-in">
       {/* 欢迎区域 */}
       <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl p-8 shadow-sm border border-primary/10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">欢迎回来，{user.name || '用户'}！</h1>
-        <p className="text-gray-600">AI学习助手为您提供个性化的学习体验</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('welcomeBack', { name: user.name || 'User' })}</h1>
+        <p className="text-gray-600">{t('personalizedLearning')}</p>
       </div>
       
       {/* 模型选择和问题输入 */}
       <Card shadow="lg" padding="lg">
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">选择模型</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('chooseModel')}</h2>
             <ModelSelector
               selectedModelId={selectedModel}
               onSelectModel={setSelectedModel}
@@ -68,7 +70,7 @@ const AppPage: React.FC = () => {
           </div>
           
           <div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">输入问题</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('inputProblem')}</h2>
             <ProblemInput
               onSubmit={handleSubmit}
               isLoading={isLoading}
@@ -81,7 +83,7 @@ const AppPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card shadow="lg" padding="lg">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">解决方案</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('solution')}</h2>
             {solution ? (
               <SolutionDisplay solution={solution} />
             ) : (
@@ -91,14 +93,14 @@ const AppPage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
                 </div>
-                <p className="text-gray-600">输入问题并提交以获取解决方案</p>
+                <p className="text-gray-600">{t('noSolution')}</p>
               </div>
             )}
           </Card>
         </div>
         <div className="lg:col-span-1">
           <Card shadow="lg" padding="lg">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">历史记录</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('history')}</h2>
             <HistoryList
               history={history}
               onSelectHistory={handleSelectHistory}

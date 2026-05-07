@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useI18n } from '../../i18n';
 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const { t } = useI18n();
   const navItems = [
-    { path: '/', label: 'AI助手', icon: '💡', color: 'text-primary' },
-    { path: '/courses', label: '课程', icon: '📚', color: 'text-success' },
-    { path: '/programming', label: '编程', icon: '💻', color: 'text-warning' },
-    { path: '/stats', label: '统计', icon: '📊', color: 'text-error' },
-    { path: '/profile', label: '个人中心', icon: '👤', color: 'text-secondary' },
+    { path: '/', label: t('aiAssistant'), icon: '💡', color: 'text-primary' },
+    { path: '/courses', label: t('courses'), icon: '📚', color: 'text-success' },
+    { path: '/programming', label: t('programming'), icon: '💻', color: 'text-warning' },
+    { path: '/stats', label: t('stats'), icon: '📊', color: 'text-error' },
+    { path: '/profile', label: t('profile'), icon: '👤', color: 'text-secondary' },
   ];
 
   return (
@@ -53,8 +55,8 @@ const Sidebar: React.FC = () => {
             </div>
             {isOpen && (
               <div className="animate-fade-in">
-                <h1 className="text-lg font-bold text-gray-900">AI学习助手</h1>
-                <p className="text-xs text-gray-500">智能学习平台</p>
+                <h1 className="text-lg font-bold text-gray-900">{t('appName')}</h1>
+                <p className="text-xs text-gray-500">{t('appSubtitle')}</p>
               </div>
             )}
           </div>
@@ -89,13 +91,13 @@ const Sidebar: React.FC = () => {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">帮助中心</p>
-              <p className="text-xs text-gray-500">获取支持</p>
+              <p className="text-sm font-medium text-gray-900">{t('helpCenter')}</p>
+              <p className="text-xs text-gray-500">{t('support')}</p>
             </div>
           </div>
           <div className="mt-4 text-xs text-gray-500 text-center">
             <p>AI Learning Assistant</p>
-            <p className="mt-1">版本 1.0.0</p>
+            <p className="mt-1">{t('version')}</p>
           </div>
         </div>
       </aside>

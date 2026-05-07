@@ -8,8 +8,11 @@
 2. 部署类型选择 Dockerfile 自动识别。
 3. 设置环境变量：
    - `JWT_SECRET`：生产环境必须改成长随机字符串。
-   - `CHATGLM_API_KEY` 或其他模型服务密钥。
-   - `DEFAULT_MODEL_PROVIDER`：默认 `minimax`。
+   - `DEEPSEEK_API_KEY`：默认文本模型密钥，用于题目解析、解题和编程助手。
+   - `DEEPSEEK_API_URL`：默认 `https://api.deepseek.com`。
+   - `DEEPSEEK_MODEL`：默认 `deepseek-v4-flash`。
+   - `DEFAULT_MODEL_PROVIDER`：默认 `deepseek`。
+   - `ARK_API_KEY`：图片识别需要；纯文本解题不需要。
    - `PORT`：Zeabur 会自动注入；不需要手动设置时默认 `8080`。
    - `VITE_API_BASE_URL`：通常留空，前端会同源访问 `/api`。
 

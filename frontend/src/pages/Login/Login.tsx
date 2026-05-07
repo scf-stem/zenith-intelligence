@@ -5,6 +5,7 @@ import { loginUser } from '../../store/slices/userSlice';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Alert from '../../components/ui/Alert';
+import { useI18n } from '../../i18n';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ const Login: React.FC = () => {
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,13 +26,13 @@ const Login: React.FC = () => {
       // 验证邮箱格式
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        setError('请输入有效的邮箱地址');
+        setError(t('invalidEmail'));
         return;
       }
 
       // 验证密码长度
       if (password.length < 6) {
-        setError('密码长度至少为6位');
+        setError(t('shortPassword'));
         return;
       }
 
@@ -48,13 +50,13 @@ const Login: React.FC = () => {
           dispatch(loginUser({ email, password }));
           navigate('/app');
         } else {
-          setError('邮箱或密码错误');
+          setError(t('invalidLogin'));
         }
       } else {
-        setError('请输入邮箱和密码');
+        setError(t('missingEmailPassword'));
       }
     } catch (err) {
-      setError('登录失败，请检查邮箱和密码');
+      setError(t('loginFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -70,8 +72,8 @@ const Login: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">AI学习助手</h1>
-            <p className="text-gray-600">登录以继续您的学习之旅</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('appName')}</h1>
+            <p className="text-gray-600">{t('loginSubtitle')}</p>
           </div>
           
           {error && (
@@ -83,12 +85,12 @@ const Login: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Input
-                label="邮箱"
+                label={t('emailField')}
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="请输入邮箱"
+                placeholder={t('emailPlaceholder')}
                 required
                 prefix={
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,12 +102,12 @@ const Login: React.FC = () => {
             
             <div>
               <Input
-                label="密码"
+                label={t('passwordField')}
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="请输入密码"
+                placeholder={t('passwordPlaceholder')}
                 required
                 showPasswordToggle
                 prefix={
@@ -125,13 +127,13 @@ const Login: React.FC = () => {
                   className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  记住我
+                  {t('rememberMe')}
                 </label>
               </div>
               
               <div className="text-sm">
                 <a href="#" className="font-medium text-primary hover:text-primary/80 transition-colors">
-                  忘记密码？
+                  {t('forgotPassword')}
                 </a>
               </div>
             </div>
@@ -142,22 +144,22 @@ const Login: React.FC = () => {
               size="lg"
               loading={isLoading}
             >
-              登录
+              {t('login')}
             </Button>
           </form>
           
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600">
-              还没有账号？
+              {t('noAccount')}
               <Link to="/register" className="font-medium text-primary hover:text-primary/80 ml-1 transition-colors">
-                立即注册
+                {t('registerNow')}
               </Link>
             </p>
           </div>
         </div>
         
         <div className="mt-6 text-center text-xs text-gray-500">
-          <p>© 2024 AI学习助手. 保留所有权利.</p>
+          <p>{t('copyright')}</p>
         </div>
       </div>
     </div>

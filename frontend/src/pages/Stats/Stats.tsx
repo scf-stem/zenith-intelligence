@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import { useI18n } from '../../i18n';
 
 const StatsPage: React.FC = () => {
+  const { t } = useI18n();
   // 模拟学习数据
   const stats = {
     totalProblems: 120,
@@ -30,7 +32,7 @@ const StatsPage: React.FC = () => {
 
   const handleExport = () => {
     // 模拟数据导出
-    alert('数据导出功能已触发');
+    alert('Export started');
   };
 
   return (
@@ -38,14 +40,14 @@ const StatsPage: React.FC = () => {
       {/* 页面标题 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">学习统计</h1>
-          <p className="text-gray-600">追踪你的学习进度和表现</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('learningStats')}</h1>
+          <p className="text-gray-600">Track your learning progress and performance.</p>
         </div>
         <Button variant="secondary" onClick={handleExport} size="md">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          导出数据
+          {t('exportData')}
         </Button>
       </div>
       
@@ -56,21 +58,21 @@ const StatsPage: React.FC = () => {
           onClick={() => setTimeRange('week')}
           className="rounded-lg"
         >
-          周
+          {t('week')}
         </Button>
         <Button
           variant={timeRange === 'month' ? 'primary' : 'outline'}
           onClick={() => setTimeRange('month')}
           className="rounded-lg"
         >
-          月
+          {t('month')}
         </Button>
         <Button
           variant={timeRange === 'year' ? 'primary' : 'outline'}
           onClick={() => setTimeRange('year')}
           className="rounded-lg"
         >
-          年
+          {t('year')}
         </Button>
       </div>
       
@@ -79,7 +81,7 @@ const StatsPage: React.FC = () => {
         <Card shadow="lg" hover={true} className="animate-fade-in" style={{ animationDelay: '0ms' }}>
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">总问题数</h3>
+              <h3 className="text-sm font-medium text-gray-600">{t('totalProblems')}</h3>
               <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -99,7 +101,7 @@ const StatsPage: React.FC = () => {
         <Card shadow="lg" hover={true} className="animate-fade-in" style={{ animationDelay: '100ms' }}>
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">已解决</h3>
+              <h3 className="text-sm font-medium text-gray-600">{t('solved')}</h3>
               <div className="w-10 h-10 rounded-full bg-success/10 text-success flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -119,7 +121,7 @@ const StatsPage: React.FC = () => {
         <Card shadow="lg" hover={true} className="animate-fade-in" style={{ animationDelay: '200ms' }}>
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">学习时间</h3>
+              <h3 className="text-sm font-medium text-gray-600">{t('studyTime')}</h3>
               <div className="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -139,7 +141,7 @@ const StatsPage: React.FC = () => {
         <Card shadow="lg" hover={true} className="animate-fade-in" style={{ animationDelay: '300ms' }}>
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">准确率</h3>
+              <h3 className="text-sm font-medium text-gray-600">{t('accuracy')}</h3>
               <div className="w-10 h-10 rounded-full bg-error/10 text-error flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -160,7 +162,7 @@ const StatsPage: React.FC = () => {
       {/* 详细统计 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card shadow="lg" padding="lg" className="animate-slide-in">
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">学科分布</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">{t('subjectDistribution')}</h3>
           <div className="space-y-5">
             {stats.subjectBreakdown.map((item) => (
               <div key={item.subject}>
@@ -183,7 +185,7 @@ const StatsPage: React.FC = () => {
         </Card>
 
         <Card shadow="lg" padding="lg" className="animate-slide-in" style={{ animationDelay: '100ms' }}>
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">周学习进度</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">{t('weeklyProgress')}</h3>
           <div className="space-y-5">
             {stats.weeklyProgress.map((item) => (
               <div key={item.day}>
@@ -205,7 +207,7 @@ const StatsPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card shadow="lg" padding="lg" className="animate-slide-in" style={{ animationDelay: '200ms' }}>
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">每日学习时间</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">{t('dailyStudyTime')}</h3>
           <div className="space-y-5">
             {stats.weeklyProgress.map((item) => (
               <div key={item.day}>
@@ -225,7 +227,7 @@ const StatsPage: React.FC = () => {
         </Card>
 
         <Card shadow="lg" padding="lg" className="animate-slide-in" style={{ animationDelay: '300ms' }}>
-          <h3 className="text-lg font-semibold text-gray-800 mb-6">学习趋势</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-6">{t('learningTrend')}</h3>
           <div className="h-64 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-200">
             <div className="text-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -233,8 +235,8 @@ const StatsPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              <p className="text-gray-600">学习趋势图表</p>
-              <p className="text-sm text-gray-500 mt-2">数据可视化功能即将上线</p>
+              <p className="text-gray-600">{t('chartComingSoon')}</p>
+              <p className="text-sm text-gray-500 mt-2">{t('visualizationComingSoon')}</p>
             </div>
           </div>
         </Card>

@@ -34,7 +34,7 @@ class AIService:
     def default_provider(self) -> str:
         """Get the default model provider."""
         if self._default_provider is None:
-            self._default_provider = current_app.config.get("DEFAULT_MODEL_PROVIDER", "minimax")
+            self._default_provider = current_app.config.get("DEFAULT_MODEL_PROVIDER", "deepseek")
         return self._default_provider
 
     @default_provider.setter

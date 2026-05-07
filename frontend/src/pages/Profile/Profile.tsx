@@ -5,10 +5,12 @@ import { logout } from '../../store/slices/userSlice';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import { useI18n } from '../../i18n';
 
 const ProfilePage: React.FC = () => {
   const dispatch = useDispatch();
   const userState = useSelector((state: RootState) => state.user);
+  const { t } = useI18n();
   
   // 模拟用户数据
   const [user, setUser] = useState({
@@ -59,8 +61,8 @@ const ProfilePage: React.FC = () => {
     <div className="space-y-8 animate-fade-in">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">个人资料</h1>
-        <p className="text-gray-600">管理你的个人信息和学习数据</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('profileTitle')}</h1>
+        <p className="text-gray-600">{t('profileSubtitle')}</p>
       </div>
       
       {/* 用户信息卡片 */}
@@ -84,24 +86,24 @@ const ProfilePage: React.FC = () => {
               onClick={() => setIsEditing(!isEditing)}
               size="md"
             >
-              {isEditing ? '取消' : '编辑资料'}
+              {isEditing ? t('cancel') : t('editProfile')}
             </Button>
             <Button variant="outline" onClick={handleLogout} size="md">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              退出登录
+              {t('logout')}
             </Button>
           </div>
         </div>
 
         {isEditing && (
           <div className="mt-8 pt-8 border-t border-gray-200 animate-slide-in">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">编辑个人资料</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-6">{t('editProfile')}</h3>
             <form onSubmit={handleEditSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">姓名</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('name')}</label>
                   <Input
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
@@ -109,7 +111,7 @@ const ProfilePage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('email')}</label>
                   <Input
                     value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
@@ -118,7 +120,7 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">个人简介</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('bio')}</label>
                 <textarea
                   value={editForm.bio || ''}
                   onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
@@ -131,7 +133,7 @@ const ProfilePage: React.FC = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                   </svg>
-                  保存更改
+                  {t('saveChanges')}
                 </Button>
               </div>
             </form>
@@ -141,28 +143,28 @@ const ProfilePage: React.FC = () => {
 
       {/* 学习统计卡片 */}
       <Card shadow="lg" padding="lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6">学习统计</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-6">{t('learningStats')}</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-primary/5 rounded-xl p-4 text-center card-hover">
             <div className="text-2xl font-bold text-primary mb-1">{stats.totalProblems}</div>
-            <div className="text-sm text-gray-600">总问题数</div>
+            <div className="text-sm text-gray-600">{t('totalProblems')}</div>
           </div>
           <div className="bg-success/5 rounded-xl p-4 text-center card-hover">
             <div className="text-2xl font-bold text-success mb-1">{stats.solvedProblems}</div>
-            <div className="text-sm text-gray-600">已解决</div>
+            <div className="text-sm text-gray-600">{t('solved')}</div>
           </div>
           <div className="bg-accent/5 rounded-xl p-4 text-center card-hover">
             <div className="text-2xl font-bold text-accent mb-1">{stats.learningTime}h</div>
-            <div className="text-sm text-gray-600">学习时间</div>
+            <div className="text-sm text-gray-600">{t('studyTime')}</div>
           </div>
           <div className="bg-error/5 rounded-xl p-4 text-center card-hover">
             <div className="text-2xl font-bold text-error mb-1">{stats.accuracy}%</div>
-            <div className="text-sm text-gray-600">准确率</div>
+            <div className="text-sm text-gray-600">{t('accuracy')}</div>
           </div>
         </div>
 
         <div className="mt-8">
-          <h4 className="font-semibold text-gray-800 mb-4">周学习进度</h4>
+          <h4 className="font-semibold text-gray-800 mb-4">{t('weeklyProgress')}</h4>
           <div className="space-y-4">
             {stats.weeklyProgress.map((item) => (
               <div key={item.day}>
@@ -184,7 +186,7 @@ const ProfilePage: React.FC = () => {
 
       {/* 成就卡片 */}
       <Card shadow="lg" padding="lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6">我的成就</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-6">{t('achievements')}</h3>
         <div className="space-y-4">
           {achievements.map((achievement, index) => (
             <div 

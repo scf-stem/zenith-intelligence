@@ -8,8 +8,8 @@
 // ========================================
 
 const DEFAULT_MODEL_PROVIDER = {
-    name: 'minimax',
-    display_name: 'MiniMax-M2.7-highspeed'
+    name: 'deepseek',
+    display_name: 'DeepSeek V4 Flash'
 };
 
 const AppState = {

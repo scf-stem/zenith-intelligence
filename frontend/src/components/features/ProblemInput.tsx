@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import Button from '../ui/Button';
+import { useI18n } from '../../i18n';
 
 interface ProblemInputProps {
   onSubmit: (type: 'text' | 'image', content: string) => void;
@@ -11,6 +12,7 @@ const ProblemInput: React.FC<ProblemInputProps> = ({ onSubmit, isLoading }) => {
   const [image, setImage] = useState<string | null>(null);
   const [inputType, setInputType] = useState<'text' | 'image'>('text');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t } = useI18n();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,13 +48,13 @@ const ProblemInput: React.FC<ProblemInputProps> = ({ onSubmit, isLoading }) => {
           variant={inputType === 'text' ? 'primary' : 'outline'}
           onClick={() => setInputType('text')}
         >
-          文本输入
+          {t('textInput')}
         </Button>
         <Button
           variant={inputType === 'image' ? 'primary' : 'outline'}
           onClick={() => setInputType('image')}
         >
-          图片输入
+          {t('imageInput')}
         </Button>
       </div>
 
@@ -60,27 +62,27 @@ const ProblemInput: React.FC<ProblemInputProps> = ({ onSubmit, isLoading }) => {
         {inputType === 'text' ? (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              输入问题
+              {t('inputProblem')}
             </label>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 resize-none"
               rows={4}
-              placeholder="请输入你的问题..."
+              placeholder={t('problemPlaceholder')}
             />
           </div>
         ) : (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              上传图片
+              {t('uploadImage')}
             </label>
             <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center hover:border-primary/50 transition-colors duration-300">
               {image ? (
                 <div className="space-y-4">
-                  <img src={image} alt="预览" className="max-h-60 mx-auto rounded-lg shadow-sm" />
+                  <img src={image} alt={t('preview')} className="max-h-60 mx-auto rounded-lg shadow-sm" />
                   <Button variant="outline" size="sm" onClick={() => setImage(null)}>
-                    更换图片
+                    {t('replaceImage')}
                   </Button>
                 </div>
               ) : (
@@ -89,7 +91,7 @@ const ProblemInput: React.FC<ProblemInputProps> = ({ onSubmit, isLoading }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <p className="text-sm text-gray-600">
-                    点击或拖拽图片到此处上传
+                    {t('dropImage')}
                   </p>
                   <input
                     ref={fileInputRef}
@@ -99,7 +101,7 @@ const ProblemInput: React.FC<ProblemInputProps> = ({ onSubmit, isLoading }) => {
                     className="hidden"
                   />
                   <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                    选择图片
+                    {t('chooseImage')}
                   </Button>
                 </div>
               )}
@@ -109,10 +111,10 @@ const ProblemInput: React.FC<ProblemInputProps> = ({ onSubmit, isLoading }) => {
 
         <div className="flex space-x-3">
           <Button type="submit" loading={isLoading}>
-            提交
+            {t('submit')}
           </Button>
           <Button variant="outline" onClick={handleClear}>
-            清空
+            {t('clear')}
           </Button>
         </div>
       </form>

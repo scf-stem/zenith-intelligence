@@ -1,4 +1,5 @@
 import React from 'react';
+import { useI18n } from '../../i18n';
 
 interface Model {
   id: string;
@@ -12,18 +13,19 @@ interface ModelSelectorProps {
 }
 
 const ModelSelector: React.FC<ModelSelectorProps> = ({ onSelectModel, selectedModelId }) => {
+  const { t } = useI18n();
   const models: Model[] = [
     {
-      id: 'MiniMax-M2.7-highspeed',
-      name: 'MiniMax-M2.7-highspeed',
-      description: '统一文本模型，适合高并发问答、解题和复杂推理任务',
+      id: 'DeepSeek V4 Flash',
+      name: 'DeepSeek V4 Flash',
+      description: t('modelDescription'),
     },
   ];
 
   return (
     <div className="model-selector">
       <label className="model-selector-label">
-        选择模型
+        {t('chooseModel')}
       </label>
       <div className="model-selector-grid">
         {models.map((model) => (

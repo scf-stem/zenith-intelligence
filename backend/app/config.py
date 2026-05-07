@@ -51,12 +51,6 @@ class Config:
         "ARK_VISION_MODEL", "doubao-seed-2-0-pro-260215"
     )
 
-    MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY", "")
-    MINIMAX_API_URL = os.getenv(
-        "MINIMAX_API_URL", "https://api.minimaxi.com/v1/chat/completions"
-    )
-    MINIMAX_MODEL = os.getenv("MINIMAX_MODEL", "MiniMax-M2.7-highspeed")
-
     CHATGLM_API_KEY = os.getenv("CHATGLM_API_KEY", "")
     CHATGLM_API_URL = os.getenv(
         "CHATGLM_API_URL", "https://open.bigmodel.cn/api/paas/v4/chat/completions"
@@ -66,9 +60,9 @@ class Config:
 
     DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
     DEEPSEEK_API_URL = os.getenv("DEEPSEEK_API_URL", "https://api.deepseek.com")
-    DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+    DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
 
-    DEFAULT_MODEL_PROVIDER = os.getenv("DEFAULT_MODEL_PROVIDER", "minimax")
+    DEFAULT_MODEL_PROVIDER = os.getenv("DEFAULT_MODEL_PROVIDER", "deepseek")
 
     REQUEST_TIMEOUT = _to_int(os.getenv("REQUEST_TIMEOUT"), 120)
     MAX_IMAGE_SIZE = _to_int(os.getenv("MAX_IMAGE_SIZE"), 5 * 1024 * 1024)

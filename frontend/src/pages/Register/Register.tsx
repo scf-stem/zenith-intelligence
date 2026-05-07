@@ -5,6 +5,7 @@ import { setUser } from '../../store/slices/userSlice';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Alert from '../../components/ui/Alert';
+import { useI18n } from '../../i18n';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ const Register: React.FC = () => {
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,25 +34,25 @@ const Register: React.FC = () => {
     try {
       // 验证表单
       if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-        setError('请填写所有字段');
+        setError(t('missingFields'));
         return;
       }
 
       // 验证邮箱格式
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
-        setError('请输入有效的邮箱地址');
+        setError(t('invalidEmail'));
         return;
       }
 
       // 验证密码长度
       if (formData.password.length < 6) {
-        setError('密码长度至少为6位');
+        setError(t('shortPassword'));
         return;
       }
 
       if (formData.password !== formData.confirmPassword) {
-        setError('两次输入的密码不一致');
+        setError(t('passwordMismatch'));
         return;
       }
 
@@ -65,7 +67,7 @@ const Register: React.FC = () => {
 
       navigate('/app');
     } catch (err) {
-      setError('注册失败，请稍后重试');
+      setError(t('registerFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -81,8 +83,8 @@ const Register: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">AI学习助手</h1>
-            <p className="text-gray-600">创建新账号开始您的学习之旅</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('appName')}</h1>
+            <p className="text-gray-600">{t('registerSubtitle')}</p>
           </div>
           
           {error && (
@@ -94,13 +96,13 @@ const Register: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Input
-                label="姓名"
+                label={t('name')}
                 id="name"
                 name="name"
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="请输入姓名"
+                placeholder={t('namePlaceholder')}
                 required
                 prefix={
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -112,13 +114,13 @@ const Register: React.FC = () => {
             
             <div>
               <Input
-                label="邮箱"
+                label={t('emailField')}
                 id="email"
                 name="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="请输入邮箱"
+                placeholder={t('emailPlaceholder')}
                 required
                 prefix={
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -130,13 +132,13 @@ const Register: React.FC = () => {
             
             <div>
               <Input
-                label="密码"
+                label={t('passwordField')}
                 id="password"
                 name="password"
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="请输入密码"
+                placeholder={t('passwordPlaceholder')}
                 required
                 showPasswordToggle
                 prefix={
@@ -149,13 +151,13 @@ const Register: React.FC = () => {
             
             <div>
               <Input
-                label="确认密码"
+                label={t('confirmPassword')}
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                placeholder="请确认密码"
+                placeholder={t('confirmPasswordPlaceholder')}
                 required
                 showPasswordToggle
                 prefix={
@@ -172,22 +174,22 @@ const Register: React.FC = () => {
               size="lg"
               loading={isLoading}
             >
-              注册
+              {t('registerNow')}
             </Button>
           </form>
           
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600">
-              已有账号？
+              {t('haveAccount')}
               <Link to="/login" className="font-medium text-primary hover:text-primary/80 ml-1 transition-colors">
-                立即登录
+                {t('loginNow')}
               </Link>
             </p>
           </div>
         </div>
         
         <div className="mt-6 text-center text-xs text-gray-500">
-          <p>© 2024 AI学习助手. 保留所有权利.</p>
+          <p>{t('copyright')}</p>
         </div>
       </div>
     </div>
