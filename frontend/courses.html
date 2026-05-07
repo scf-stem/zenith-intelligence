@@ -1320,7 +1320,87 @@
                         ]
                     }
                 ];
+                if (this.isEnglish()) {
+                    this.courses = this.getLocalCoursesEn();
+                }
                 this.renderCourses();
+            },
+
+            getLocalCoursesEn() {
+                const makeChapters = (items, startId = 1) => items.map((item, index) => ({
+                    id: startId + index,
+                    name: item[0],
+                    description: item[1],
+                    lessons: [{ id: startId + index, name: item[0], duration: 45 }]
+                }));
+
+                return [
+                    {
+                        id: 1,
+                        name: 'Python Programming Basics',
+                        description: 'Learn Python from scratch, including variables, data types, control flow, functions, object-oriented programming, and exception handling.',
+                        subject: 'programming',
+                        difficulty: 2,
+                        coverClass: 'cover-python',
+                        coverIcon: 'PY',
+                        instructor: 'AI Tutor',
+                        duration: 280,
+                        chapterCount: 7,
+                        chapters: makeChapters([
+                            ['Python Basics', 'Variables, data types, input/output, operators, and type conversion.'],
+                            ['Conditions and Loops', 'if/elif/else, comparisons, logical operators, for loops, while loops, break, and continue.'],
+                            ['Functions and Methods', 'Function definitions, parameters, return values, scope, built-ins, and lambda expressions.'],
+                            ['Lists and Dictionaries', 'List operations, dictionary operations, slicing, comprehensions, and common methods.'],
+                            ['Classes and Objects', 'Class definitions, constructors, instance attributes, class attributes, and methods.'],
+                            ['Object-Oriented Programming', 'Encapsulation, inheritance, polymorphism, super(), and magic methods.'],
+                            ['Exception Handling', 'try/except/finally, raise, custom exceptions, and assertions.']
+                        ], 1)
+                    },
+                    {
+                        id: 2,
+                        name: 'C Programming Basics',
+                        description: 'Learn core C concepts, including data types, control structures, functions, arrays, and pointers for systems and embedded programming.',
+                        subject: 'programming',
+                        difficulty: 2,
+                        coverClass: 'cover-c',
+                        coverIcon: 'C',
+                        instructor: 'AI Tutor',
+                        duration: 320,
+                        chapterCount: 8,
+                        chapters: makeChapters([
+                            ['Getting Started with C', 'C history, language features, your first Hello World program, and the compile-run workflow.'],
+                            ['Data Types and Variables', 'Basic C data types, declarations, initialization, scanf, and printf.'],
+                            ['Operators and Expressions', 'Arithmetic, relational, logical, assignment, and bitwise operators.'],
+                            ['Conditional Statements', 'if/else decisions and switch/case multi-branch control flow.'],
+                            ['Loops', 'for, while, do-while, break, and continue.'],
+                            ['Arrays', 'One-dimensional arrays, two-dimensional arrays, character arrays, and strings.'],
+                            ['Functions', 'Function definition, calls, arguments, return values, recursion, and scope.'],
+                            ['Pointer Basics', 'Addresses, pointer declarations, dereferencing, pointer arithmetic, arrays, and functions.']
+                        ], 101)
+                    },
+                    {
+                        id: 3,
+                        name: 'Vibe Coding for Beginners',
+                        description: 'A beginner-friendly course for building games, tools, and websites with AI by describing what you want clearly.',
+                        subject: 'programming',
+                        difficulty: 1,
+                        coverClass: 'cover-vibe',
+                        coverIcon: 'AI',
+                        instructor: 'AI Tutor',
+                        duration: 240,
+                        chapterCount: 8,
+                        chapters: makeChapters([
+                            ['AI Is Your Super Teammate', 'Understand AI, Vibe Coding, and the strengths and limits of AI tools.'],
+                            ['Learn to Talk to AI', 'Use prompt techniques to express needs clearly and get better results.'],
+                            ['Build a Snake Game', 'Generate your first playable game with AI and learn basic web code structure.'],
+                            ['Build Your Own Small Tool', 'Create practical tools such as a Pomodoro timer, flashcards, or a random picker.'],
+                            ['Publish Your Work', 'Deploy your project online with GitHub Pages and share it with others.'],
+                            ['When AI Gets It Wrong', 'Learn debugging tactics and how to ask AI for targeted fixes.'],
+                            ['Free Creation Time', 'Plan and build a creative project using everything you have learned.'],
+                            ['Showcase and Wrap-up', 'Present your work, review what you learned, and plan your next steps.']
+                        ], 201)
+                    }
+                ];
             },
 
             renderCourses() {

@@ -4,6 +4,14 @@
     const SUPPORTED_LOCALES = ['en', 'zh-CN'];
 
     const en = {
+        'Zenith Intelligence (极智学习) - 智能学习，从这里开始': 'Zenith Intelligence - Start learning intelligently',
+        'Zenith Intelligence (极智学习) - 智能解题': 'Zenith Intelligence - Problem Solver',
+        'Zenith Intelligence (极智学习) - 课程': 'Zenith Intelligence - Courses',
+        'Zenith Intelligence (极智学习) - 学习界面': 'Zenith Intelligence - Learning',
+        'Zenith Intelligence (极智学习) - 编程助手': 'Zenith Intelligence - Programming',
+        'Zenith Intelligence (极智学习) - 个人中心': 'Zenith Intelligence - Profile',
+        'Zenith Intelligence (极智学习) - 学习统计': 'Zenith Intelligence - Stats',
+        'Zenith Intelligence - 站长统计': 'Zenith Intelligence - Admin Stats',
         'Zenith Intelligence (极智学习)': 'Zenith Intelligence',
         '智能解题': 'Problem Solver',
         '课程中心': 'Courses',
@@ -134,8 +142,10 @@
         '智能学习，从这里开始': 'Start learning intelligently',
         '利用先进的AI技术，为你提供准确、详细的题目解析和解答过程，': 'Use advanced AI to get accurate, detailed problem analysis and solution steps,',
         '帮助你更好地理解知识点，提高学习效率。': 'so you can understand concepts better and learn more efficiently.',
+        '利用先进的AI技术，为你提供准确、详细的题目解析和解答过程，\n                    帮助你更好地理解知识点，提高学习效率。': 'Use advanced AI to get accurate, detailed problem analysis and solution steps, so you can understand concepts better and learn more efficiently.',
         'AI智能解答': 'AI Answers',
         '已有账号？': 'Already have an account?',
+        '还没有账号？': 'No account yet?',
         '立即登录': 'Log in now',
         '没有账号？': 'No account?',
         '立即注册': 'Register now',
@@ -145,12 +155,17 @@
         '支持多模态问答，图文混合输入': 'Supports multimodal Q&A with mixed image and text input',
         '企业级数据安全，会话端到端加密': 'Enterprise-grade data security with end-to-end session encryption',
         '无限历史记录，知识随时回溯': 'Unlimited history so knowledge is always easy to revisit',
+        '✨ 支持多模态问答，图文混合输入': '✨ Supports multimodal Q&A with mixed image and text input',
+        '🔒 企业级数据安全，会话端到端加密': '🔒 Enterprise-grade data security with end-to-end session encryption',
+        '📚 无限历史记录，知识随时回溯': '📚 Unlimited history so knowledge is always easy to revisit',
         '智能图像识别': 'Smart image recognition',
         '精准题目解析': 'Accurate problem analysis',
         '安全可靠': 'Secure and reliable',
         'SSL安全': 'SSL secure',
         '数据加密': 'Data encrypted',
         '密码': 'Password',
+        '记住我': 'Remember me',
+        '忘记密码？': 'Forgot password?',
         '请输入用户名': 'Enter username',
         '请输入密码': 'Enter password',
         '登录中...': 'Logging in...',
@@ -162,6 +177,7 @@
         '确认密码': 'Confirm password',
         '请再次输入密码': 'Enter password again',
         '我已阅读并同意': 'I have read and agree to',
+        '和': 'and',
         '《服务条款》': 'Terms of Service',
         '《隐私政策》': 'Privacy Policy',
         '创建账号': 'Create account',
@@ -398,6 +414,7 @@
         applying = true;
         const scope = root || document.body;
         document.documentElement.lang = getLocale();
+        translateDocumentTitle();
 
         scope.querySelectorAll('[data-i18n]').forEach((element) => {
             const key = element.getAttribute('data-i18n');
@@ -418,6 +435,13 @@
         });
 
         applying = false;
+    }
+
+    function translateDocumentTitle() {
+        if (!document.__zenithOriginalTitle) {
+            document.__zenithOriginalTitle = document.title;
+        }
+        document.title = translateText(document.__zenithOriginalTitle || document.title);
     }
 
     function setLocale(locale) {
