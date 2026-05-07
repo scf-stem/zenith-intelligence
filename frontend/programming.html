@@ -407,6 +407,15 @@ print('Hello, World!')"></textarea>
             currentTab: 'output',
             supportedLanguages: ['python', 'c', 'javascript', 'java', 'cpp'],
             indentUnit: '    ',
+
+            isEnglish() {
+                const locale = window.ZenithI18n ? window.ZenithI18n.getLocale() : (localStorage.getItem('zenith_locale') || 'en');
+                return locale === 'en';
+            },
+
+            text(en, zh) {
+                return this.isEnglish() ? en : zh;
+            },
             
             init() {
                 this.bindEvents();
@@ -655,36 +664,36 @@ print('Hello, World!')"></textarea>
 
             formatAIToolOutput(tool, data) {
                 if (tool === 'explain') {
-                    return data.explanation || '未返回解释内容';
+                    return data.explanation || this.text('No explanation returned.', '未返回解释内容');
                 }
                 if (tool === 'review') {
-                    return data.review || '未返回审查内容';
+                    return data.review || this.text('No review returned.', '未返回审查内容');
                 }
                 if (tool === 'debug') {
-                    return data.debug || '未返回调试内容';
+                    return data.debug || this.text('No debug result returned.', '未返回调试内容');
                 }
                 if (tool === 'optimize') {
-                    return `### 优化后的代码\n\n\`\`\`${this.language}\n${data.optimizedCode || ''}\n\`\`\``;
+                    return `### ${this.text('Optimized code', '优化后的代码')}\n\n\`\`\`${this.language}\n${data.optimizedCode || ''}\n\`\`\``;
                 }
                 if (tool === 'test') {
-                    return `### 生成的测试代码\n\n\`\`\`${this.language}\n${data.testCode || ''}\n\`\`\``;
+                    return `### ${this.text('Generated test code', '生成的测试代码')}\n\n\`\`\`${this.language}\n${data.testCode || ''}\n\`\`\``;
                 }
                 if (tool === 'convert') {
-                    return `### 转换后的 ${data.toLanguage} 代码\n\n\`\`\`${data.toLanguage}\n${data.code || ''}\n\`\`\``;
+                    return `### ${this.text(`Converted ${data.toLanguage} code`, `转换后的 ${data.toLanguage} 代码`)}\n\n\`\`\`${data.toLanguage}\n${data.code || ''}\n\`\`\``;
                 }
-                return '未返回处理结果';
+                return this.text('No result returned.', '未返回处理结果');
             },
             
             async runCode() {
                 const code = document.getElementById('code-editor').value;
                 
                 if (!code.trim()) {
-                    this.showOutput('请输入代码后再运行', 'error');
+                    this.showOutput(this.text('Enter code before running.', '请输入代码后再运行'), 'error');
                     return;
                 }
                 
                 const runBtn = document.getElementById('run-btn');
-                runBtn.innerHTML = '<span class="loading"></span> 运行中...';
+                runBtn.innerHTML = `<span class="loading"></span> ${this.text('Running...', '运行中...')}`;
                 runBtn.disabled = true;
                 
                 try {
@@ -708,21 +717,21 @@ print('Hello, World!')"></textarea>
                         }
                         
                         if (data.stderr) {
-                            output += '\n[错误输出]\n' + data.stderr;
+                            output += `\n[${this.text('stderr', '错误输出')}]\n` + data.stderr;
                         }
                         
                         if (data.returnCode !== 0) {
-                            output += `\n[进程退出码: ${data.returnCode}]`;
+                            output += `\n[${this.text('Exit code', '进程退出码')}: ${data.returnCode}]`;
                         }
                         
-                        this.showOutput(output || '程序执行完成，无输出', data.returnCode === 0 ? 'success' : 'error');
+                        this.showOutput(output || this.text('Program finished with no output.', '程序执行完成，无输出'), data.returnCode === 0 ? 'success' : 'error');
                     } else {
                         this.showOutput(result.error, 'error');
                     }
                 } catch (error) {
-                    this.showOutput('运行失败: ' + error.message, 'error');
+                    this.showOutput(this.text('Run failed: ', '运行失败: ') + error.message, 'error');
                 } finally {
-                    runBtn.innerHTML = '▶ 运行';
+                    runBtn.innerHTML = this.text('▶ Run', '▶ 运行');
                     runBtn.disabled = false;
                 }
             },
@@ -731,12 +740,12 @@ print('Hello, World!')"></textarea>
                 const code = document.getElementById('code-editor').value;
                 
                 if (!code.trim()) {
-                    alert('请先输入代码');
+                    alert(this.text('Enter code first.', '请先输入代码'));
                     return;
                 }
                 
                 this.switchTab('ai');
-                this.showAIOutput('正在处理中...', 'loading');
+                this.showAIOutput(this.text('Processing...', '正在处理中...'), 'loading');
                 
                 const endpoints = {
                     'explain': '/api/programming/explain',
@@ -760,23 +769,23 @@ print('Hello, World!')"></textarea>
                 if (tool === 'convert') {
                     const defaultTarget = this.language === 'python' ? 'javascript' : 'python';
                     const targetLanguage = window.prompt(
-                        '请输入目标语言：python / c / javascript / java / cpp',
+                        this.text('Enter target language: python / c / javascript / java / cpp', '请输入目标语言：python / c / javascript / java / cpp'),
                         defaultTarget
                     );
 
                     if (!targetLanguage) {
-                        this.showAIOutput('已取消语言转换', 'info');
+                        this.showAIOutput(this.text('Language conversion canceled.', '已取消语言转换'), 'info');
                         return;
                     }
 
                     const normalizedTarget = targetLanguage.trim().toLowerCase();
                     if (!this.supportedLanguages.includes(normalizedTarget)) {
-                        this.showAIOutput('不支持的目标语言', 'error');
+                        this.showAIOutput(this.text('Unsupported target language.', '不支持的目标语言'), 'error');
                         return;
                     }
 
                     if (normalizedTarget === this.language) {
-                        this.showAIOutput('目标语言不能与当前语言相同', 'error');
+                        this.showAIOutput(this.text('Target language must differ from the current language.', '目标语言不能与当前语言相同'), 'error');
                         return;
                     }
 
@@ -801,7 +810,7 @@ print('Hello, World!')"></textarea>
                         this.showAIOutput(result.error, 'error');
                     }
                 } catch (error) {
-                    this.showAIOutput('处理失败: ' + error.message, 'error');
+                    this.showAIOutput(this.text('Processing failed: ', '处理失败: ') + error.message, 'error');
                 }
             },
             
@@ -834,9 +843,9 @@ print('Hello, World!')"></textarea>
                 });
                 
                 if (tab === 'output') {
-                    this.showOutput(this.output || '运行代码后，输出将显示在这里...', 'info');
+                    this.showOutput(this.output || this.text('Output will appear here after you run code.', '运行代码后，输出将显示在这里...'), 'info');
                 } else {
-                    this.showAIOutput('选择一个 AI 工具来处理代码', 'info');
+                    this.showAIOutput(this.text('Choose an AI tool to process your code.', '选择一个 AI 工具来处理代码'), 'info');
                 }
             },
             
@@ -845,7 +854,7 @@ print('Hello, World!')"></textarea>
                 document.getElementById('code-editor').value = starterCode;
                 this.code = starterCode;
                 this.saveCode();
-                this.showOutput('已载入默认示例代码', 'info');
+                this.showOutput(this.text('Default sample code loaded.', '已载入默认示例代码'), 'info');
             },
             
             saveCode() {
@@ -876,9 +885,9 @@ print('Hello, World!')"></textarea>
             
             updatePlaceholder() {
                 const placeholders = {
-                    python: "# 在这里输入你的 Python 代码...\n# 例如:\nprint('Hello, World!')",
+                    python: this.text("# Enter your Python code here...\n# Example:\nprint('Hello, World!')", "# 在这里输入你的 Python 代码...\n# 例如:\nprint('Hello, World!')"),
                     c: "#include <stdio.h>\n\nint main() {\n    printf(\"Hello, World!\\n\");\n    return 0;\n}",
-                    javascript: "// 在这里输入你的 JavaScript 代码...\n// 例如:\nconsole.log('Hello, World!');",
+                    javascript: this.text("// Enter your JavaScript code here...\n// Example:\nconsole.log('Hello, World!');", "// 在这里输入你的 JavaScript 代码...\n// 例如:\nconsole.log('Hello, World!');"),
                     java: "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, World!\");\n    }\n}",
                     cpp: "#include <iostream>\n\nint main() {\n    std::cout << \"Hello, World!\" << std::endl;\n    return 0;\n}"
                 };

@@ -356,6 +356,15 @@
             heatmap: null,
             charts: {},
 
+            isEnglish() {
+                const locale = window.ZenithI18n ? window.ZenithI18n.getLocale() : (localStorage.getItem('zenith_locale') || 'en');
+                return locale === 'en';
+            },
+
+            text(en, zh) {
+                return this.isEnglish() ? en : zh;
+            },
+
             async init() {
                 await Promise.all([
                     this.loadOverview(),
@@ -458,30 +467,30 @@
                 container.innerHTML = `
                     <div class="overview-card">
                         <div class="overview-value">${data.level}</div>
-                        <div class="overview-label">当前等级</div>
+                        <div class="overview-label">${this.text('Current level', '当前等级')}</div>
                         <span class="level-badge">${data.levelTitle}</span>
                     </div>
                     <div class="overview-card">
                         <div class="overview-value">${data.totalProblems}</div>
-                        <div class="overview-label">总题目数</div>
-                        <div class="overview-change change-up">本周 +${data.recentProblems}</div>
+                        <div class="overview-label">${this.text('Total problems', '总题目数')}</div>
+                        <div class="overview-change change-up">${this.text(`This week +${data.recentProblems || 0}`, `本周 +${data.recentProblems || 0}`)}</div>
                     </div>
                     <div class="overview-card">
                         <div class="overview-value">${data.accuracyRate}%</div>
-                        <div class="overview-label">正确率</div>
+                        <div class="overview-label">${this.text('Accuracy', '正确率')}</div>
                     </div>
                     <div class="overview-card">
                         <div class="overview-value">${data.streakDays}</div>
-                        <div class="overview-label">连续学习天数</div>
+                        <div class="overview-label">${this.text('Study streak', '连续学习天数')}</div>
                     </div>
                     <div class="overview-card">
                         <div class="overview-value">${Math.floor(data.totalStudyTime / 60)}h</div>
-                        <div class="overview-label">总学习时长</div>
+                        <div class="overview-label">${this.text('Total study time', '总学习时长')}</div>
                     </div>
                     <div class="overview-card">
                         <div class="overview-value">${data.experience}</div>
-                        <div class="overview-label">经验值</div>
-                        <div class="overview-change">下一级需要 ${data.nextLevelExp}</div>
+                        <div class="overview-label">${this.text('XP', '经验值')}</div>
+                        <div class="overview-change">${this.text(`Next level needs ${data.nextLevelExp}`, `下一级需要 ${data.nextLevelExp}`)}</div>
                     </div>
                 `;
             },
@@ -496,7 +505,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: '学习时长(分钟)',
+                            label: this.text('Study time (min)', '学习时长(分钟)'),
                             data: studyTimeData,
                             borderColor: '#4CAF50',
                             backgroundColor: 'rgba(76, 175, 80, 0.1)',
@@ -519,7 +528,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: '题目数',
+                            label: this.text('Problems', '题目数'),
                             data: problemsData,
                             backgroundColor: '#2196F3'
                         }]
@@ -592,22 +601,22 @@
                 container.innerHTML = `
                     <div class="ranking-item">
                         <div class="ranking-rank">#${data.levelRank}</div>
-                        <div class="ranking-label">等级排名</div>
-                        <div class="ranking-percentile">超过 ${data.percentiles.level}% 的用户</div>
+                        <div class="ranking-label">${this.text('Level ranking', '等级排名')}</div>
+                        <div class="ranking-percentile">${this.text(`Ahead of ${data.percentiles.level}% of users`, `超过 ${data.percentiles.level}% 的用户`)}</div>
                     </div>
                     <div class="ranking-item">
                         <div class="ranking-rank">#${data.problemsRank}</div>
-                        <div class="ranking-label">题目数排名</div>
-                        <div class="ranking-percentile">超过 ${data.percentiles.problems}% 的用户</div>
+                        <div class="ranking-label">${this.text('Problem ranking', '题目数排名')}</div>
+                        <div class="ranking-percentile">${this.text(`Ahead of ${data.percentiles.problems}% of users`, `超过 ${data.percentiles.problems}% 的用户`)}</div>
                     </div>
                     <div class="ranking-item">
                         <div class="ranking-rank">#${data.streakRank}</div>
-                        <div class="ranking-label">连续学习排名</div>
-                        <div class="ranking-percentile">超过 ${data.percentiles.streak}% 的用户</div>
+                        <div class="ranking-label">${this.text('Streak ranking', '连续学习排名')}</div>
+                        <div class="ranking-percentile">${this.text(`Ahead of ${data.percentiles.streak}% of users`, `超过 ${data.percentiles.streak}% 的用户`)}</div>
                     </div>
                     <div class="ranking-item">
                         <div class="ranking-rank">${data.totalUsers}</div>
-                        <div class="ranking-label">总用户数</div>
+                        <div class="ranking-label">${this.text('Total users', '总用户数')}</div>
                     </div>
                 `;
             },
@@ -628,7 +637,7 @@
                     if (count >= 5) level = 3;
                     if (count >= 10) level = 4;
 
-                    cells.push(`<div class="heatmap-cell heatmap-level-${level}" title="${dateStr}: ${count} 题"></div>`);
+                    cells.push(`<div class="heatmap-cell heatmap-level-${level}" title="${dateStr}: ${this.text(`${count} problems`, `${count} 题`)}"></div>`);
                 }
 
                 container.innerHTML = cells.join('');

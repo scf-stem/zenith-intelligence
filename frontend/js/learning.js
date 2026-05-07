@@ -11,13 +11,30 @@ const LearningApp = {
     cacheKey: 'ai_learning_current_course',
     usesCachedCourse: false,
 
+    locale() {
+        return window.ZenithI18n ? window.ZenithI18n.getLocale() : (localStorage.getItem('zenith_locale') || 'en');
+    },
+
+    isEnglish() {
+        return this.locale() === 'en';
+    },
+
+    apiWithLocale(path) {
+        const separator = path.includes('?') ? '&' : '?';
+        return `${path}${separator}locale=${encodeURIComponent(this.locale())}`;
+    },
+
+    text(en, zh) {
+        return this.isEnglish() ? en : zh;
+    },
+
     init() {
         // Parse courseId from URL query string
         const urlParams = new URLSearchParams(window.location.search);
         this.courseId = urlParams.get('course_id');
 
         if (!this.courseId) {
-            alert('获取课程信息失败，请返回重试！');
+            alert(this.text('Failed to load course information. Please go back and try again.', '获取课程信息失败，请返回重试！'));
             window.location.href = 'courses.html';
             return;
         }
@@ -91,7 +108,7 @@ const LearningApp = {
         document.getElementById('lesson-content').innerHTML = `
             <div class="loader" style="color: red;">
                 <p>${message}</p>
-                <p><a href="courses.html" style="color: inherit;">返回课程中心</a></p>
+                <p><a href="courses.html" style="color: inherit;">${this.text('Back to courses', '返回课程中心')}</a></p>
             </div>`;
     },
 
@@ -106,7 +123,7 @@ const LearningApp = {
 
         document.getElementById('lesson-content').innerHTML = `
             <div class="loader">
-                 <p>课程暂时没有上架课时内容。</p>
+                 <p>${this.text('No lesson content is available for this course yet.', '课程暂时没有上架课时内容。')}</p>
             </div>`;
         return false;
     },
@@ -136,21 +153,21 @@ const LearningApp = {
             const lesson = (chapter.lessons || []).find(item => parseInt(item.id, 10) === targetLessonId);
             if (lesson) {
                 const notice = reason || (this.usesCachedCourse
-                    ? '当前为本地预览模式，服务器课程内容暂未同步。'
-                    : '服务器课时内容暂不可用，已切换到本地预览。');
+                    ? this.text('Local preview mode: server lesson content has not synced yet.', '当前为本地预览模式，服务器课程内容暂未同步。')
+                    : this.text('Server lesson content is unavailable. Showing local preview.', '服务器课时内容暂不可用，已切换到本地预览。'));
 
                 const content = [
                     `> ${notice}`,
                     '',
-                    `## 课程：${this.currentCourse.name}`,
-                    `## 章节：${chapter.name}`,
+                    `## ${this.text('Course', '课程')}：${this.currentCourse.name}`,
+                    `## ${this.text('Chapter', '章节')}：${chapter.name}`,
                     '',
-                    `${lesson.description || chapter.description || this.currentCourse.description || '课程内容准备中。'}`,
+                    `${lesson.description || chapter.description || this.currentCourse.description || this.text('Course content is being prepared.', '课程内容准备中。')}`,
                     '',
-                    '### 当前学习建议',
-                    '- 先阅读左侧章节目录，按顺序完成学习。',
-                    '- 如右侧代码实验室已开启，可直接运行示例代码。',
-                    '- 若需要完整教案内容，请补齐后端课程种子数据。'
+                    `### ${this.text('Current learning suggestions', '当前学习建议')}`,
+                    `- ${this.text('Read the chapter list on the left and learn in order.', '先阅读左侧章节目录，按顺序完成学习。')}`,
+                    `- ${this.text('If the code lab is available, run the sample code directly.', '如右侧代码实验室已开启，可直接运行示例代码。')}`,
+                    `- ${this.text('Sync the server course seed data to get the full lesson plan.', '若需要完整教案内容，请补齐后端课程种子数据。')}`
                 ].join('\n');
 
                 return {
@@ -225,18 +242,18 @@ const LearningApp = {
                 : `<article class="markdown-content"><h1>${lesson.name}</h1>${html}</article>`;
         }
 
-        return `<article class="markdown-content"><h1>${lesson.name}</h1><p>该课时暂无内容。</p></article>`;
+        return `<article class="markdown-content"><h1>${lesson.name}</h1><p>${this.text('This lesson has no content yet.', '该课时暂无内容。')}</p></article>`;
     },
 
     async loadCourseData() {
         try {
-            const response = await UserManager.fetchApi(`/api/course/${this.courseId}`);
+            const response = await UserManager.fetchApi(this.apiWithLocale(`/api/course/${this.courseId}`));
             if (response.status === 404) {
-                if (this.loadCachedCourseData('服务器中未找到该课程，已切换到本地预览模式。')) {
+                if (this.loadCachedCourseData(this.text('Course not found on the server. Switched to local preview mode.', '服务器中未找到该课程，已切换到本地预览模式。'))) {
                     return;
                 }
 
-                this.renderLoadError('该课程当前未同步到服务器，请返回课程中心重试。');
+                this.renderLoadError(this.text('This course is not synced to the server yet. Please return to Courses and try again.', '该课程当前未同步到服务器，请返回课程中心重试。'));
                 return;
             }
 
@@ -252,11 +269,11 @@ const LearningApp = {
             }
         } catch (error) {
             console.error('加载课程数据失败:', error);
-            if (this.loadCachedCourseData('网络异常，已切换到本地预览模式。')) {
+            if (this.loadCachedCourseData(this.text('Network error. Switched to local preview mode.', '网络异常，已切换到本地预览模式。'))) {
                 return;
             }
 
-            this.renderLoadError('网络错误，无法加载课程大纲。请检查服务运行状态。');
+            this.renderLoadError(this.text('Network error. Unable to load the course outline. Check that the service is running.', '网络错误，无法加载课程大纲。请检查服务运行状态。'));
         }
     },
 
@@ -272,7 +289,7 @@ const LearningApp = {
 
             return `
                 <div class="menu-chapter-group">
-                    <div class="menu-chapter">第${index + 1}章: ${chapter.name}</div>
+                    <div class="menu-chapter">${this.text(`Chapter ${index + 1}:`, `第${index + 1}章:`)} ${chapter.name}</div>
                     <div class="menu-lessons-list">${lessonsHtml}</div>
                 </div>
             `;
@@ -298,17 +315,17 @@ const LearningApp = {
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="15" stroke-dashoffset="15" class="animate-spin" style="margin-bottom: 15px; animation: spin 2s linear infinite;">
                     <circle cx="12" cy="12" r="10" />
                 </svg>
-                <p>读取教案中...</p>
+                <p>${this.text('Loading lesson...', '读取教案中...')}</p>
             </div>`;
 
         try {
-            const response = await UserManager.fetchApi(`/api/course/lesson/${lessonId}`);
+            const response = await UserManager.fetchApi(this.apiWithLocale(`/api/course/lesson/${lessonId}`));
             if (response.status === 404) {
-                if (this.renderCachedLesson(lessonId, '当前课时内容尚未同步到服务器，已展示本地预览。')) {
+                if (this.renderCachedLesson(lessonId, this.text('This lesson is not synced to the server yet. Showing local preview.', '当前课时内容尚未同步到服务器，已展示本地预览。'))) {
                     return;
                 }
 
-                mainContent.innerHTML = '<p style="color:red; padding: 20px;">读取课时失败：课程内容不存在。</p>';
+                mainContent.innerHTML = `<p style="color:red; padding: 20px;">${this.text('Failed to load lesson: content does not exist.', '读取课时失败：课程内容不存在。')}</p>`;
                 return;
             }
 
@@ -316,18 +333,18 @@ const LearningApp = {
 
             if (result.success) {
                 this.renderLessonContent(result.data);
-            } else if (this.renderCachedLesson(lessonId, `读取课时失败：${result.error || '服务器返回异常'}，已展示本地预览。`)) {
+            } else if (this.renderCachedLesson(lessonId, this.text(`Failed to load lesson: ${result.error || 'server returned an error'}. Showing local preview.`, `读取课时失败：${result.error || '服务器返回异常'}，已展示本地预览。`))) {
                 return;
             } else {
-                mainContent.innerHTML = `<p style="color:red; padding: 20px;">读取课时失败: ${result.error}</p>`;
+                mainContent.innerHTML = `<p style="color:red; padding: 20px;">${this.text('Failed to load lesson', '读取课时失败')}: ${result.error}</p>`;
             }
         } catch (error) {
             console.error('加载课时内容失败:', error);
-            if (this.renderCachedLesson(lessonId, '网络异常，已展示本地预览内容。')) {
+            if (this.renderCachedLesson(lessonId, this.text('Network error. Showing local preview content.', '网络异常，已展示本地预览内容。'))) {
                 return;
             }
 
-            mainContent.innerHTML = '<p style="color:red; padding: 20px;">发生错误，请稍后重试。</p>';
+            mainContent.innerHTML = `<p style="color:red; padding: 20px;">${this.text('An error occurred. Please try again later.', '发生错误，请稍后重试。')}</p>`;
         }
     },
 
@@ -370,11 +387,11 @@ const LearningApp = {
         const statusEl = document.getElementById('run-status');
 
         btn.disabled = true;
-        btn.textContent = '运行中...';
+        btn.textContent = this.text('Running...', '运行中...');
         consoleOutput.innerHTML = '';
         consoleOutput.classList.remove('error');
 
-        statusEl.textContent = '正在执行代码...';
+        statusEl.textContent = this.text('Executing code...', '正在执行代码...');
         statusEl.style.color = '#FFA500';
         statusEl.style.display = 'block';
 
@@ -395,30 +412,30 @@ const LearningApp = {
             if (result.success) {
                 // Return Code Handling
                 if (result.data.returnCode === 0) {
-                    statusEl.textContent = '执行成功 (Return Code 0)';
+                    statusEl.textContent = this.text('Execution succeeded (Return Code 0)', '执行成功 (Return Code 0)');
                     statusEl.style.color = '#4CAF50';
-                    consoleOutput.textContent = result.data.stdout || '(脚本未输出任何内容)';
+                    consoleOutput.textContent = result.data.stdout || this.text('(The script did not output anything)', '(脚本未输出任何内容)');
                 } else {
-                    statusEl.textContent = '执行异常';
+                    statusEl.textContent = this.text('Execution error', '执行异常');
                     statusEl.style.color = '#f44336';
                     consoleOutput.classList.add('error');
-                    consoleOutput.textContent = result.data.stderr || result.data.stdout || '执行中发生未知内部错误';
+                    consoleOutput.textContent = result.data.stderr || result.data.stdout || this.text('Unknown internal error during execution', '执行中发生未知内部错误');
                 }
             } else {
-                statusEl.textContent = '运行被拒绝';
+                statusEl.textContent = this.text('Run rejected', '运行被拒绝');
                 statusEl.style.color = '#f44336';
                 consoleOutput.classList.add('error');
                 consoleOutput.textContent = result.error || 'Server Side Execution Exception';
             }
         } catch (error) {
             console.error('执行代码失败:', error);
-            statusEl.textContent = '网络错误';
+            statusEl.textContent = this.text('Network error', '网络错误');
             statusEl.style.color = '#f44336';
             consoleOutput.classList.add('error');
-            consoleOutput.textContent = '无法连接到代码执行沙盒引擎。请确保后端开启。';
+            consoleOutput.textContent = this.text('Cannot connect to the code execution sandbox. Make sure the backend is running.', '无法连接到代码执行沙盒引擎。请确保后端开启。');
         } finally {
             btn.disabled = false;
-            btn.textContent = '▶ 运行代码';
+            btn.textContent = this.text('▶ Run code', '▶ 运行代码');
         }
     }
 };

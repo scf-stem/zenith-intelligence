@@ -18,6 +18,12 @@ from app.models.course import (
     UserCourseProgress,
 )
 from app.models.user import User
+from app.services.course_i18n import (
+    localize_chapter_dict,
+    localize_course_dict,
+    localize_lesson_dict,
+    resolve_locale,
+)
 
 course_bp = Blueprint("course", __name__)
 
@@ -30,6 +36,7 @@ course_bp = Blueprint("course", __name__)
 @course_bp.route("/list", methods=["GET"])
 def list_courses():
     """List all courses."""
+    locale = resolve_locale(request)
     subject = request.args.get("subject")
     difficulty = request.args.get("difficulty", type=int)
     featured = request.args.get("featured")
@@ -49,13 +56,17 @@ def list_courses():
 
     return jsonify({
         "success": True,
-        "data": [c.to_dict() for c in courses]
+        "data": [
+            localize_course_dict(c.to_dict(), c.order_index, locale)
+            for c in courses
+        ]
     })
 
 
 @course_bp.route("/<int:course_id>", methods=["GET"])
 def get_course(course_id: int):
     """Get a specific course with chapters."""
+    locale = resolve_locale(request)
     course = db.session.get(Course, course_id)
 
     if not course or not course.is_active:
@@ -63,13 +74,14 @@ def get_course(course_id: int):
 
     return jsonify({
         "success": True,
-        "data": course.to_dict(include_chapters=True)
+        "data": localize_course_dict(course.to_dict(include_chapters=True), course.order_index, locale)
     })
 
 
 @course_bp.route("/<int:course_id>/chapters", methods=["GET"])
 def get_course_chapters(course_id: int):
     """Get all chapters of a course."""
+    locale = resolve_locale(request)
     course = db.session.get(Course, course_id)
 
     if not course or not course.is_active:
@@ -84,7 +96,10 @@ def get_course_chapters(course_id: int):
 
     return jsonify({
         "success": True,
-        "data": [c.to_dict(include_lessons=True) for c in chapters]
+        "data": [
+            localize_chapter_dict(c.to_dict(include_lessons=True), course.order_index, locale)
+            for c in chapters
+        ]
     })
 
 
@@ -96,6 +111,7 @@ def get_course_chapters(course_id: int):
 @course_bp.route("/chapter/<int:chapter_id>", methods=["GET"])
 def get_chapter(chapter_id: int):
     """Get a specific chapter."""
+    locale = resolve_locale(request)
     chapter = db.session.get(Chapter, chapter_id)
 
     if not chapter or not chapter.is_active:
@@ -103,7 +119,11 @@ def get_chapter(chapter_id: int):
 
     return jsonify({
         "success": True,
-        "data": chapter.to_dict(include_lessons=True)
+        "data": localize_chapter_dict(
+            chapter.to_dict(include_lessons=True),
+            chapter.course.order_index if chapter.course else None,
+            locale,
+        )
     })
 
 
@@ -115,6 +135,7 @@ def get_chapter(chapter_id: int):
 @course_bp.route("/lesson/<int:lesson_id>", methods=["GET"])
 def get_lesson(lesson_id: int):
     """Get a specific lesson."""
+    locale = resolve_locale(request)
     lesson = db.session.get(Lesson, lesson_id)
 
     if not lesson or not lesson.is_active:
@@ -122,7 +143,12 @@ def get_lesson(lesson_id: int):
 
     return jsonify({
         "success": True,
-        "data": lesson.to_dict(include_content=True)
+        "data": localize_lesson_dict(
+            lesson.to_dict(include_content=True),
+            lesson.chapter.course.order_index if lesson.chapter and lesson.chapter.course else None,
+            lesson.chapter.order_index if lesson.chapter else None,
+            locale,
+        )
     })
 
 

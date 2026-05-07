@@ -434,6 +434,15 @@
             achievements: [],
             history: [],
 
+            isEnglish() {
+                const locale = window.ZenithI18n ? window.ZenithI18n.getLocale() : (localStorage.getItem('zenith_locale') || 'en');
+                return locale === 'en';
+            },
+
+            text(en, zh) {
+                return this.isEnglish() ? en : zh;
+            },
+
             async init() {
                 await this.loadUserInfo();
                 await this.loadAchievements();
@@ -500,12 +509,15 @@
                 if (!user) return;
 
                 document.getElementById('profile-avatar').textContent = (user.username || '?').charAt(0).toUpperCase();
-                document.getElementById('profile-name').textContent = user.username || '未知用户';
-                document.getElementById('profile-level').textContent = `Lv.1 初学者`;  // fallback – level not in auth/me
-                document.getElementById('profile-bio').textContent = '这个人很懒，什么都没写...';
+                document.getElementById('profile-name').textContent = user.username || this.text('Unknown user', '未知用户');
+                document.getElementById('profile-level').textContent = this.text('Lv.1 Beginner', 'Lv.1 初学者');  // fallback – level not in auth/me
+                document.getElementById('profile-bio').textContent = this.text('No bio yet.', '这个人很懒，什么都没写...');
 
                 document.getElementById('experience-fill').style.width = '0%';
-                document.getElementById('experience-text').textContent = `加入于: ${new Date(user.createdAt || Date.now()).toLocaleDateString()}`;
+                document.getElementById('experience-text').textContent = this.text(
+                    `Joined: ${new Date(user.createdAt || Date.now()).toLocaleDateString()}`,
+                    `加入于: ${new Date(user.createdAt || Date.now()).toLocaleDateString()}`
+                );
 
                 if (document.getElementById('bio-input')) {
                     document.getElementById('bio-input').value = '';
@@ -518,23 +530,23 @@
                 document.getElementById('stats-cards').innerHTML = `
                     <div class="stat-card">
                         <div class="stat-value">-</div>
-                        <div class="stat-label">总题目数</div>
+                        <div class="stat-label">${this.text('Total problems', '总题目数')}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value">-</div>
-                        <div class="stat-label">正确题目</div>
+                        <div class="stat-label">${this.text('Correct problems', '正确题目')}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value">-</div>
-                        <div class="stat-label">正确率</div>
+                        <div class="stat-label">${this.text('Accuracy', '正确率')}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value">-</div>
-                        <div class="stat-label">连续学习</div>
+                        <div class="stat-label">${this.text('Streak', '连续学习')}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value">-</div>
-                        <div class="stat-label">学习时长</div>
+                        <div class="stat-label">${this.text('Study time', '学习时长')}</div>
                     </div>
                 `;
             },
@@ -572,7 +584,7 @@
                     <div class="achievement-item ${a.unlocked ? '' : 'locked'}">
                         <div class="achievement-icon">${icons[a.icon] || '🏆'}</div>
                         <div class="achievement-name">${a.name}</div>
-                        <div class="achievement-points">+${a.points} 经验</div>
+                        <div class="achievement-points">+${a.points} ${this.text('XP', '经验')}</div>
                     </div>
                 `).join('');
             },
@@ -581,7 +593,7 @@
                 const container = document.getElementById('history-list');
 
                 if (this.history.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">暂无答题记录</p>';
+                    container.innerHTML = `<p style="text-align: center; color: #999; padding: 20px;">${this.text('No problem history yet', '暂无答题记录')}</p>`;
                     return;
                 }
 
@@ -608,12 +620,12 @@
                     const result = await response.json();
 
                     if (result.success) {
-                        alert('设置已保存');
-                        document.getElementById('profile-bio').textContent = bio || '这个人很懒，什么都没写...';
+                        alert(this.text('Settings saved', '设置已保存'));
+                        document.getElementById('profile-bio').textContent = bio || this.text('No bio yet.', '这个人很懒，什么都没写...');
                     }
                 } catch (error) {
                     console.error('保存设置失败:', error);
-                    alert('保存失败，请重试');
+                    alert(this.text('Save failed. Please try again.', '保存失败，请重试'));
                 }
             },
 

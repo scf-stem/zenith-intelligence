@@ -954,6 +954,23 @@
             currentCourse: null,
             cacheKey: 'ai_learning_current_course',
 
+            locale() {
+                return window.ZenithI18n ? window.ZenithI18n.getLocale() : (localStorage.getItem('zenith_locale') || 'en');
+            },
+
+            isEnglish() {
+                return this.locale() === 'en';
+            },
+
+            text(en, zh) {
+                return this.isEnglish() ? en : zh;
+            },
+
+            apiWithLocale(path) {
+                const separator = path.includes('?') ? '&' : '?';
+                return `${path}${separator}locale=${encodeURIComponent(this.locale())}`;
+            },
+
             async init() {
                 await this.loadCourses();
                 this.bindEvents();
@@ -962,7 +979,7 @@
             async loadCourses() {
                 try {
                     // 尝试从 API 加载课程
-                    const response = await UserManager.fetchApi('/api/course/list');
+                    const response = await UserManager.fetchApi(this.apiWithLocale('/api/course/list'));
                     const result = await response.json();
 
                     if (result.success && result.data && result.data.length > 0) {
@@ -1310,7 +1327,7 @@
                 const container = document.getElementById('courses-grid');
 
                 if (this.courses.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px; grid-column: 1/-1;">暂无课程</p>';
+                    container.innerHTML = `<p style="text-align: center; color: #999; padding: 40px; grid-column: 1/-1;">${this.text('No courses yet', '暂无课程')}</p>`;
                     return;
                 }
 
@@ -1319,11 +1336,11 @@
                         <div class="course-cover ${course.coverClass || 'cover-default'}">${course.coverIcon || '📖'}</div>
                         <div class="course-content">
                             <div class="course-name">${course.name}</div>
-                            <div class="course-description">${course.description || '暂无描述'}</div>
+                            <div class="course-description">${course.description || this.text('No description yet', '暂无描述')}</div>
                             <div class="course-meta">
                                 <div class="course-stats">
-                                    <span class="course-stat">📚 ${course.chapterCount || 0} 章节</span>
-                                    <span class="course-stat">⏱️ ${course.duration || 0} 分钟</span>
+                                    <span class="course-stat">📚 ${this.text(`${course.chapterCount || 0} chapters`, `${course.chapterCount || 0} 章节`)}</span>
+                                    <span class="course-stat">⏱️ ${this.text(`${course.duration || 0} min`, `${course.duration || 0} 分钟`)}</span>
                                 </div>
                                 <span class="course-difficulty difficulty-${course.difficulty || 1}">
                                     ${this.getDifficultyText(course.difficulty)}
@@ -1335,8 +1352,10 @@
             },
 
             getDifficultyText(difficulty) {
-                const texts = { 1: '入门', 2: '进阶', 3: '高级' };
-                return texts[difficulty] || '入门';
+                const texts = this.isEnglish()
+                    ? { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced' }
+                    : { 1: '入门', 2: '进阶', 3: '高级' };
+                return texts[difficulty] || texts[1];
             },
 
             getCourseTheme(course) {
@@ -1376,9 +1395,9 @@
 
             getSubjectText(subject) {
                 const texts = {
-                    programming: '编程课程'
+                    programming: this.text('Programming', '编程课程')
                 };
-                return texts[subject] || '精选课程';
+                return texts[subject] || this.text('Featured course', '精选课程');
             },
 
             getLessonCount(course) {
@@ -1400,7 +1419,7 @@
             async showCourseDetail(courseId) {
                 try {
                     // 尝试从 API 加载课程详情
-                    const response = await UserManager.fetchApi(`/api/course/${courseId}`);
+                    const response = await UserManager.fetchApi(this.apiWithLocale(`/api/course/${courseId}`));
                     const result = await response.json();
 
                     if (result.success) {
@@ -1440,14 +1459,17 @@
 
                 document.getElementById('detail-cover').textContent = course.coverIcon || theme.icon;
                 document.getElementById('detail-subject').textContent = this.getSubjectText(course.subject);
-                document.getElementById('detail-level').textContent = `${this.getDifficultyText(course.difficulty)}难度`;
+                document.getElementById('detail-level').textContent = this.text(`${this.getDifficultyText(course.difficulty)} level`, `${this.getDifficultyText(course.difficulty)}难度`);
                 document.getElementById('detail-title').textContent = course.name;
-                document.getElementById('detail-summary').textContent = `预计 ${course.duration || 0} 分钟完成，包含 ${course.chapterCount || 0} 个章节与 ${lessonCount} 个核心课时。`;
-                document.getElementById('detail-instructor').textContent = course.instructor || '未知';
-                document.getElementById('detail-duration').textContent = `${course.duration || 0} 分钟`;
-                document.getElementById('detail-chapters').textContent = `${course.chapterCount || 0} 章节`;
-                document.getElementById('detail-description').textContent = course.description || '暂无描述';
-                document.getElementById('detail-lesson-total').textContent = `${lessonCount} 课时`;
+                document.getElementById('detail-summary').textContent = this.text(
+                    `Estimated ${course.duration || 0} minutes, with ${course.chapterCount || 0} chapters and ${lessonCount} core lessons.`,
+                    `预计 ${course.duration || 0} 分钟完成，包含 ${course.chapterCount || 0} 个章节与 ${lessonCount} 个核心课时。`
+                );
+                document.getElementById('detail-instructor').textContent = course.instructor || this.text('Unknown', '未知');
+                document.getElementById('detail-duration').textContent = this.text(`${course.duration || 0} min`, `${course.duration || 0} 分钟`);
+                document.getElementById('detail-chapters').textContent = this.text(`${course.chapterCount || 0} chapters`, `${course.chapterCount || 0} 章节`);
+                document.getElementById('detail-description').textContent = course.description || this.text('No description yet', '暂无描述');
+                document.getElementById('detail-lesson-total').textContent = this.text(`${lessonCount} lessons`, `${lessonCount} 课时`);
 
                 const chapterList = document.getElementById('chapter-list');
                 if (course.chapters && course.chapters.length > 0) {
@@ -1457,8 +1479,8 @@
                                 <div class="chapter-header-main">
                                     <span class="chapter-order">${String(index + 1).padStart(2, '0')}</span>
                                     <div class="chapter-name-wrap">
-                                        <span class="chapter-name">第${index + 1}章 · ${chapter.name}</span>
-                                        <span class="chapter-brief">${chapter.description || `${(chapter.lessons && chapter.lessons.length) || chapter.lessonCount || 0} 个课时，建议按顺序完成`}</span>
+                                        <span class="chapter-name">${this.text(`Chapter ${index + 1}`, `第${index + 1}章`)} · ${chapter.name}</span>
+                                        <span class="chapter-brief">${chapter.description || this.text(`${(chapter.lessons && chapter.lessons.length) || chapter.lessonCount || 0} lessons. Complete them in order.`, `${(chapter.lessons && chapter.lessons.length) || chapter.lessonCount || 0} 个课时，建议按顺序完成`)}</span>
                                     </div>
                                 </div>
                                 <span class="chapter-toggle">›</span>
@@ -1467,14 +1489,14 @@
                                 ${chapter.lessons ? chapter.lessons.map(lesson => `
                                     <div class="lesson-item" data-id="${lesson.id}">
                                         <span class="lesson-name">${lesson.name}</span>
-                                        <span class="lesson-duration">${lesson.duration || 0} 分钟</span>
+                                        <span class="lesson-duration">${this.text(`${lesson.duration || 0} min`, `${lesson.duration || 0} 分钟`)}</span>
                                     </div>
-                                `).join('') : '<p style="color: #999; padding: 10px;">暂无课时</p>'}
+                                `).join('') : `<p style="color: #999; padding: 10px;">${this.text('No lessons yet', '暂无课时')}</p>`}
                             </div>
                         </div>
                     `).join('');
                 } else {
-                    chapterList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">课程目录整理中，稍后会在这里展示完整章节。</p>';
+                    chapterList.innerHTML = `<p style="color: #999; text-align: center; padding: 20px;">${this.text('The course outline is being prepared. Full chapters will appear here later.', '课程目录整理中，稍后会在这里展示完整章节。')}</p>`;
                 }
             },
 
@@ -1502,7 +1524,7 @@
                 if (!this.currentCourse) return;
 
                 if (!UserManager.isLoggedIn()) {
-                    alert('请先登录才能开始学习课程！');
+                    alert(this.text('Please log in before starting a course.', '请先登录才能开始学习课程！'));
                     window.location.href = 'index.html';
                     return;
                 }
@@ -1606,7 +1628,7 @@
                 const container = document.getElementById('courses-grid');
 
                 if (courses.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px; grid-column: 1/-1;">没有符合条件的课程</p>';
+                    container.innerHTML = `<p style="text-align: center; color: #999; padding: 40px; grid-column: 1/-1;">${this.text('No courses match the filters', '没有符合条件的课程')}</p>`;
                     return;
                 }
 
@@ -1615,11 +1637,11 @@
                         <div class="course-cover ${course.coverClass || 'cover-default'}">${course.coverIcon || '📖'}</div>
                         <div class="course-content">
                             <div class="course-name">${course.name}</div>
-                            <div class="course-description">${course.description || '暂无描述'}</div>
+                            <div class="course-description">${course.description || this.text('No description yet', '暂无描述')}</div>
                             <div class="course-meta">
                                 <div class="course-stats">
-                                    <span class="course-stat">📚 ${course.chapterCount || 0} 章节</span>
-                                    <span class="course-stat">⏱️ ${course.duration || 0} 分钟</span>
+                                    <span class="course-stat">📚 ${this.text(`${course.chapterCount || 0} chapters`, `${course.chapterCount || 0} 章节`)}</span>
+                                    <span class="course-stat">⏱️ ${this.text(`${course.duration || 0} min`, `${course.duration || 0} 分钟`)}</span>
                                 </div>
                                 <span class="course-difficulty difficulty-${course.difficulty || 1}">
                                     ${this.getDifficultyText(course.difficulty)}
