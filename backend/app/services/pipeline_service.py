@@ -15,6 +15,7 @@ class PipelineService:
 
         try:
             provider = input_data.get("provider")
+            locale = input_data.get("locale", "en")
             input_type = input_data.get("type", "text")
 
             if input_type == "image":
@@ -23,6 +24,7 @@ class PipelineService:
                 combined_result = ai_service.solve_problem_with_image_structured(
                     images,
                     provider_name=provider,
+                    locale=locale,
                 )
                 result["data"]["recognizedText"] = combined_result.get("recognizedText", "") or "(图片题目)"
                 result["data"]["parseResult"] = combined_result.get("parseResult", {})
@@ -36,6 +38,7 @@ class PipelineService:
                     images,
                     text,
                     provider_name=provider,
+                    locale=locale,
                 )
                 result["data"]["recognizedText"] = combined_result.get("recognizedText", "") or text or "(图文混合题目)"
                 result["data"]["parseResult"] = combined_result.get("parseResult", {})
@@ -46,7 +49,7 @@ class PipelineService:
                 problem_text = str(input_data.get("content", ""))
                 result["data"]["recognizedText"] = problem_text
 
-                combined_result = ai_service.solve_problem_structured(problem_text, provider)
+                combined_result = ai_service.solve_problem_structured(problem_text, provider, locale)
                 result["data"]["parseResult"] = combined_result["parseResult"]
                 result["data"]["solution"] = combined_result["solution"]
 
@@ -79,22 +82,34 @@ class PipelineService:
         except Exception as exc:  # noqa: BLE001
             return {"success": False, "error": str(exc)}
 
-    def parse_only(self, text: str, provider: Optional[str] = None) -> Dict:
+    def parse_only(self, text: str, provider: Optional[str] = None, locale: str = "en") -> Dict:
         try:
-            parse_result = ai_service.parse_problem(text, provider)
+            parse_result = ai_service.parse_problem(text, provider, locale)
             return {"success": True, "data": parse_result}
         except Exception as exc:  # noqa: BLE001
             return {"success": False, "error": str(exc)}
 
-    def solve_only(self, text: str, parse_result: Dict, provider: Optional[str] = None) -> Dict:
+    def solve_only(
+        self,
+        text: str,
+        parse_result: Dict,
+        provider: Optional[str] = None,
+        locale: str = "en",
+    ) -> Dict:
         try:
-            solution = ai_service.generate_solution(text, parse_result, provider)
+            solution = ai_service.generate_solution(text, parse_result, provider, locale)
             return {"success": True, "data": solution}
         except Exception as exc:  # noqa: BLE001
             return {"success": False, "error": str(exc)}
 
-    def solve_stream(self, text: str, parse_result: Dict, provider: Optional[str] = None) -> Generator[str, None, None]:
-        yield from ai_service.generate_solution_stream(text, parse_result, provider)
+    def solve_stream(
+        self,
+        text: str,
+        parse_result: Dict,
+        provider: Optional[str] = None,
+        locale: str = "en",
+    ) -> Generator[str, None, None]:
+        yield from ai_service.generate_solution_stream(text, parse_result, provider, locale)
 
 
 pipeline_service = PipelineService()

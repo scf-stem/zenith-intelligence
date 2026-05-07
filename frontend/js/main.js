@@ -24,6 +24,10 @@ const AppState = {
     availableProviders: [DEFAULT_MODEL_PROVIDER] // 可用的模型列表
 };
 
+function getAppLocale() {
+    return window.ZenithI18n ? window.ZenithI18n.getLocale() : (localStorage.getItem('zenith_locale') || 'en');
+}
+
 // ========================================
 // DOM 元素引用
 // ========================================
@@ -669,10 +673,11 @@ async function solveWithFullPipeline() {
     if (AppState.modelProvider) {
         requestBody.provider = AppState.modelProvider;
     }
+    requestBody.locale = getAppLocale();
 
     const response = await UserManager.fetchApi('/api/solve-problem', {
         method: 'POST',
-        headers: UserManager.getHeaders(),
+        headers: { ...UserManager.getHeaders(), 'X-Zenith-Locale': getAppLocale() },
         body: JSON.stringify(requestBody)
     });
 
@@ -710,8 +715,8 @@ async function performRecognition() {
     // 调用后端 API 进行图像识别
     const response = await UserManager.fetchApi('/api/recognize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: AppState.images[0].data })
+        headers: { 'Content-Type': 'application/json', 'X-Zenith-Locale': getAppLocale() },
+        body: JSON.stringify({ image: AppState.images[0].data, locale: getAppLocale() })
     });
 
     if (!response.ok) throw new Error('识别失败');
@@ -739,7 +744,8 @@ async function performParsing() {
         headers: UserManager.getHeaders(),
         body: JSON.stringify({
             text: AppState.recognizedText,
-            provider: AppState.modelProvider
+            provider: AppState.modelProvider,
+            locale: getAppLocale()
         })
     });
 
@@ -772,7 +778,8 @@ async function performSolving() {
         body: JSON.stringify({
             text: AppState.recognizedText,
             parseResult: AppState.parseResult,
-            provider: AppState.modelProvider
+            provider: AppState.modelProvider,
+            locale: getAppLocale()
         })
     });
 

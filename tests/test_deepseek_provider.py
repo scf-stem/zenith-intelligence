@@ -66,6 +66,29 @@ class DeepSeekProviderTestCase(unittest.TestCase):
         self.assertEqual(result["knowledgePoints"], ["方程"])
 
     @patch("app.services.model_provider.requests.post")
+    def test_parse_problem_uses_english_prompt_for_english_locale(self, post):
+        post.return_value = self._mock_response(
+            json.dumps(
+                {
+                    "type": "Solution",
+                    "subject": "Math",
+                    "knowledgePoints": ["linear equations"],
+                    "difficulty": "Easy",
+                    "prerequisites": ["algebra"],
+                }
+            )
+        )
+
+        result = self.provider.parse_problem("x + 1 = 2", locale="en")
+
+        request_json = post.call_args.kwargs["json"]
+        self.assertIn("All user-facing values must be in English", request_json["messages"][0]["content"])
+        self.assertIn("Return only this JSON object", request_json["messages"][1]["content"])
+        self.assertNotIn("请按以下", request_json["messages"][1]["content"])
+        self.assertEqual(result["subject"], "Math")
+        self.assertEqual(result["difficulty"], "Easy")
+
+    @patch("app.services.model_provider.requests.post")
     def test_generate_solution_parses_solution_json(self, post):
         post.return_value = self._mock_response(
             json.dumps(
@@ -83,6 +106,26 @@ class DeepSeekProviderTestCase(unittest.TestCase):
 
         self.assertEqual(result["answer"], "x=1")
         self.assertEqual(result["steps"], ["两边减 1", "得到 x=1"])
+
+    @patch("app.services.model_provider.requests.post")
+    def test_generate_solution_uses_chinese_prompt_for_chinese_locale(self, post):
+        post.return_value = self._mock_response(
+            json.dumps(
+                {
+                    "thinking": "移项求解。",
+                    "steps": ["两边减 1", "得到 x=1"],
+                    "answer": "x=1",
+                    "summary": "一元一次方程可通过移项求解。",
+                },
+                ensure_ascii=False,
+            )
+        )
+
+        self.provider.generate_solution("x + 1 = 2", {"knowledgePoints": ["方程"]}, locale="zh-CN")
+
+        request_json = post.call_args.kwargs["json"]
+        self.assertIn("你是一位优秀的 AI 教师", request_json["messages"][0]["content"])
+        self.assertIn("请严格输出一个合法、简洁的 JSON 对象", request_json["messages"][1]["content"])
 
     @patch("app.services.model_provider.requests.post")
     def test_streaming_yields_content_deltas(self, post):

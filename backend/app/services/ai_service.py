@@ -318,6 +318,10 @@ class AIService:
         }
 
     @staticmethod
+    def _is_english(locale: str) -> bool:
+        return locale != "zh-CN"
+
+    @staticmethod
     def _get_ark_client(api_key: str, base_url: str):
         try:
             from openai import OpenAI
@@ -390,7 +394,7 @@ class AIService:
         return self._extract_ark_output_text(response)
 
     def _solve_with_image_ark(
-        self, images: list[str], text: str, config: Dict[str, str]
+        self, images: list[str], text: str, config: Dict[str, str], locale: str = "en"
     ) -> Dict[str, Any]:
         client = self._get_ark_client(config["api_key"], config["api_url"])
         prompt_text = text.strip()
@@ -399,10 +403,36 @@ class AIService:
             {"type": "input_image", "image_url": image_data}
             for image_data in images
         ]
-        content_parts.append(
-            {
-                "type": "input_text",
-                "text": f"""你是一位高效、准确的 AI 教师。请根据图片中的题目内容{("以及附加文字说明" if prompt_text else "")}，一次性完成“识题、题目解析、详细解答”并输出 JSON。
+        if self._is_english(locale):
+            prompt = f"""You are an efficient and accurate AI teacher. Based on the problem in the image{(" and the additional text" if prompt_text else "")}, transcribe the problem and return one valid JSON object.
+
+Additional text:
+{prompt_text if prompt_text else "(none)"}
+
+Return only a valid JSON object. Do not include markdown code fences or explanatory text outside JSON. All user-facing values must be in English.
+
+JSON structure:
+{{
+  "questionText": "Complete transcribed problem text. Do not use placeholders such as image problem.",
+  "type": "Problem type: Multiple choice / Fill in the blank / Solution / True or false",
+  "subject": "Subject",
+  "knowledgePoints": ["knowledge point 1", "knowledge point 2"],
+  "difficulty": "Difficulty: Easy / Medium / Hard",
+  "prerequisites": ["prerequisite 1", "prerequisite 2"],
+  "thinking": "Reasoning text only, without headings",
+  "steps": ["Step content only, without Step 1 prefix", "Step content only, without Step 2 prefix"],
+  "answer": "Final answer only, without heading",
+  "summary": "Knowledge summary only, without heading"
+}}
+
+Requirements:
+1. `questionText` must transcribe the image text, numbers, and formulas as completely as possible.
+2. `steps` must contain at least 2 steps.
+3. Use LaTeX for mathematical expressions.
+4. Keep simple problems concise.
+5. Do not repeat this prompt."""
+        else:
+            prompt = f"""你是一位高效、准确的 AI 教师。请根据图片中的题目内容{("以及附加文字说明" if prompt_text else "")}，一次性完成“识题、题目解析、详细解答”并输出 JSON。
 
 附加文字说明：
 {prompt_text if prompt_text else "（无）"}
@@ -429,9 +459,9 @@ JSON 结构必须严格如下：
 3. 数学表达式使用 LaTeX。
 4. 对 `subject`、`knowledgePoints`、`difficulty`、`prerequisites`，如果能根据题目内容推断就直接给出；只有完全无法判断时返回空字符串或空数组，不要输出“未知”“无法确定”“题目信息不足”等占位词。
 5. 题目简单时保持简洁，不要过度展开。
-6. 不要重复提示词内容。""",
-            }
-        )
+6. 不要重复提示词内容。"""
+
+        content_parts.append({"type": "input_text", "text": prompt})
 
         response = client.responses.create(
             model=config["model"],
@@ -494,13 +524,14 @@ JSON 结构必须严格如下：
         images: list[str],
         text: str = "",
         provider_name: Optional[str] = None,
+        locale: str = "en",
     ) -> Dict[str, Any]:
         """Solve an image problem and return recognized text, parse result and solution."""
         config = self._resolve_multimodal_config()
         if not config["api_key"] or not config["api_url"]:
             raise APIError("豆包视觉服务未配置", 500)
 
-        structured = self._solve_with_image_ark(images, text, config)
+        structured = self._solve_with_image_ark(images, text, config, locale)
         recognized_text = self._sanitize_recognized_problem_text(structured.get("recognizedText"))
         if not recognized_text:
             recognized_text = self._sanitize_recognized_problem_text(text)
@@ -514,15 +545,22 @@ JSON 结构必须严格如下：
                 recognized_text = ""
 
         parse_result = self._sanitize_parse_result(structured.get("parseResult"))
-        if not self._has_parse_result_content(parse_result) and recognized_text:
+        if recognized_text:
             try:
                 parse_result = self._sanitize_parse_result(
-                    self.parse_problem(recognized_text, provider_name)
+                    self.parse_problem(recognized_text, provider_name, locale)
                 )
             except Exception:  # noqa: BLE001
                 parse_result = parse_result or {}
 
         solution = self._sanitize_solution_result(structured.get("solution", {}))
+        if recognized_text:
+            try:
+                solution = self._sanitize_solution_result(
+                    self.generate_solution(recognized_text, parse_result, provider_name, locale)
+                )
+            except Exception:  # noqa: BLE001
+                solution = solution or {}
 
         return {
             "recognizedText": recognized_text,
@@ -530,10 +568,12 @@ JSON 结构必须严格如下：
             "solution": solution,
         }
 
-    def parse_problem(self, text: str, provider_name: Optional[str] = None) -> Dict:
+    def parse_problem(
+        self, text: str, provider_name: Optional[str] = None, locale: str = "en"
+    ) -> Dict:
         """Parse problem using specified or default provider."""
         provider = self.get_provider(provider_name)
-        return provider.parse_problem(text)
+        return provider.parse_problem(text, locale)
 
     def complete_structured_response(
         self,
@@ -569,18 +609,25 @@ JSON 结构必须严格如下：
         return normalized
 
     def generate_solution(
-        self, text: str, parse_result: Dict, provider_name: Optional[str] = None
+        self,
+        text: str,
+        parse_result: Dict,
+        provider_name: Optional[str] = None,
+        locale: str = "en",
     ) -> Dict:
         """Generate solution using specified or default provider."""
         provider = self.get_provider(provider_name)
-        return self._sanitize_solution_result(provider.generate_solution(text, parse_result))
+        return self._sanitize_solution_result(provider.generate_solution(text, parse_result, locale))
 
-    def solve_problem_structured(self, text: str, provider_name: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
+    def solve_problem_structured(
+        self, text: str, provider_name: Optional[str] = None, locale: str = "en"
+    ) -> Dict[str, Dict[str, Any]]:
+        english = self._is_english(locale)
         response_template = {
-            "type": "解答",
-            "subject": "数学",
+            "type": "Solution" if english else "解答",
+            "subject": "Math" if english else "数学",
             "knowledgePoints": [],
-            "difficulty": "中等",
+            "difficulty": "Medium" if english else "中等",
             "prerequisites": [],
             "thinking": "",
             "steps": [],
@@ -588,12 +635,42 @@ JSON 结构必须严格如下：
             "summary": "",
         }
 
-        structured = self.complete_structured_response(
-            system_prompt=(
+        if english:
+            system_prompt = (
+                "You are an efficient and accurate AI teacher. "
+                "Return only one valid JSON object. Do not output markdown fences, hidden reasoning, or extra commentary. "
+                "All user-facing values must be in English."
+            )
+            user_prompt = f"""Complete both problem analysis and detailed solution for the following problem, then return one JSON object.
+
+Problem:
+{text}
+
+The JSON structure must be exactly:
+{{
+  "type": "Problem type: Multiple choice / Fill in the blank / Solution / True or false",
+  "subject": "Subject",
+  "knowledgePoints": ["knowledge point 1", "knowledge point 2"],
+  "difficulty": "Difficulty: Easy / Medium / Hard",
+  "prerequisites": ["prerequisite 1", "prerequisite 2"],
+  "thinking": "Reasoning text only, without a Reasoning heading",
+  "steps": ["Step content only, without Step 1 prefix", "Step content only, without Step 2 prefix"],
+  "answer": "Final answer only, without a Final Answer heading",
+  "summary": "Knowledge summary only, without a Summary heading"
+}}
+
+Constraints:
+1. `steps` must be an array of strings with at least 2 steps.
+2. Do not include headings, numbering prefixes, or prompt copies in `thinking` and `summary`.
+3. Keep simple problems concise.
+4. Use LaTeX for mathematical expressions.
+5. Output JSON only."""
+        else:
+            system_prompt = (
                 "你是一位高效、准确的 AI 教师。"
                 "你必须只输出一个合法 JSON 对象，不要输出 markdown 代码块、思考过程或额外说明。"
-            ),
-            user_prompt=f"""请对以下题目同时完成“题目解析”和“详细解答”，并一次性输出 JSON。
+            )
+            user_prompt = f"""请对以下题目同时完成“题目解析”和“详细解答”，并一次性输出 JSON。
 
 题目：
 {text}
@@ -616,7 +693,11 @@ JSON 结构必须严格如下：
 2. `thinking`、`summary` 不要包含章节标题、编号或提示词回显。
 3. 题目简单时保持简洁，不要过度展开。
 4. 数学公式使用 LaTeX。
-5. 仅输出 JSON。""",
+5. 仅输出 JSON。"""
+
+        structured = self.complete_structured_response(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
             response_template=response_template,
             provider_name=provider_name,
             temperature=0.1,
@@ -645,11 +726,15 @@ JSON 结构必须严格如下：
         return {"parseResult": parse_result, "solution": solution}
 
     def generate_solution_stream(
-        self, text: str, parse_result: Dict, provider_name: Optional[str] = None
+        self,
+        text: str,
+        parse_result: Dict,
+        provider_name: Optional[str] = None,
+        locale: str = "en",
     ) -> Generator[str, None, None]:
         """Generate solution with streaming using specified or default provider."""
         provider = self.get_provider(provider_name)
-        return provider.generate_solution_stream(text, parse_result)
+        return provider.generate_solution_stream(text, parse_result, locale)
 
     def parse_solution_content(self, content: str) -> Dict:
         """Parse solution content into structured format."""

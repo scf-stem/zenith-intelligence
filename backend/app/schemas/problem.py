@@ -5,11 +5,13 @@ from marshmallow import Schema, ValidationError, fields, validate, validates
 
 class RecognizeSchema(Schema):
     image = fields.String(required=True, error_messages={"required": "缺少图片数据"})
+    locale = fields.String(required=False, allow_none=True)
 
 
 class ParseSchema(Schema):
     text = fields.String(required=True, error_messages={"required": "缺少题目文本"})
     provider = fields.String(required=False, allow_none=True)
+    locale = fields.String(required=False, allow_none=True)
 
     @validates("text")
     def validate_text(self, value, **kwargs):
@@ -25,6 +27,7 @@ class SolveSchema(Schema):
         error_messages={"required": "缺少解析结果"},
     )
     provider = fields.String(required=False, allow_none=True)
+    locale = fields.String(required=False, allow_none=True)
 
     @validates("text")
     def validate_text(self, value, **kwargs):
@@ -42,6 +45,7 @@ class SolveProblemSchema(Schema):
     text = fields.String(required=False, allow_none=True, load_default=None)
     images = fields.List(fields.String(), required=False, load_default=[])
     provider = fields.String(required=False, allow_none=True)
+    locale = fields.String(required=False, allow_none=True)
 
 
 class SolveStreamSchema(Schema):
@@ -51,6 +55,8 @@ class SolveStreamSchema(Schema):
         data_key="parseResult",
         error_messages={"required": "缺少必要参数"},
     )
+    provider = fields.String(required=False, allow_none=True)
+    locale = fields.String(required=False, allow_none=True)
 
     @validates("text")
     def validate_text(self, value, **kwargs):

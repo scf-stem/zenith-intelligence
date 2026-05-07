@@ -20,16 +20,16 @@ class BaseModelProvider(ABC):
     display_name: str = "Base Model"
 
     @abstractmethod
-    def parse_problem(self, text: str) -> Dict:
+    def parse_problem(self, text: str, locale: str = "en") -> Dict:
         """Parse problem and extract metadata."""
 
     @abstractmethod
-    def generate_solution(self, text: str, parse_result: Dict) -> Dict:
+    def generate_solution(self, text: str, parse_result: Dict, locale: str = "en") -> Dict:
         """Generate solution for the problem."""
 
     @abstractmethod
     def generate_solution_stream(
-        self, text: str, parse_result: Dict
+        self, text: str, parse_result: Dict, locale: str = "en"
     ) -> Generator[str, None, None]:
         """Generate solution with streaming."""
 
@@ -164,13 +164,53 @@ class DeepSeekProvider(BaseModelProvider):
         response = self._request(request_data)
         return self._extract_message_text(response.json())
 
-    def parse_problem(self, text: str) -> Dict:
-        content = self.complete(
-            system_prompt=(
+    @staticmethod
+    def _is_english(locale: str) -> bool:
+        return locale != "zh-CN"
+
+    @staticmethod
+    def _normalize_list(value) -> list[str]:
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        if value is None or value == "":
+            return []
+        return [str(value).strip()]
+
+    def _coerce_parse_result_en(self, data: Dict, source_text: str) -> Dict:
+        return {
+            "type": str(data.get("type") or "Solution").strip(),
+            "subject": str(data.get("subject") or "General").strip(),
+            "knowledgePoints": self._normalize_list(data.get("knowledgePoints")) or ["Problem analysis", "Solution method"],
+            "difficulty": str(data.get("difficulty") or "Medium").strip(),
+            "prerequisites": self._normalize_list(data.get("prerequisites")) or ["Relevant basic concepts"],
+        }
+
+    def parse_problem(self, text: str, locale: str = "en") -> Dict:
+        if self._is_english(locale):
+            system_prompt = (
+                "You are a professional education analyst. "
+                "Analyze academic problems and return only a valid JSON object. "
+                "Do not add markdown fences or extra text. All user-facing values must be in English."
+            )
+            user_prompt = f"""Analyze the following problem:
+
+Problem:
+{text}
+
+Return only this JSON object:
+{{
+    "type": "Problem type, one of: Multiple choice / Fill in the blank / Solution / True or false",
+    "subject": "Subject",
+    "knowledgePoints": ["knowledge point 1", "knowledge point 2"],
+    "difficulty": "Difficulty, one of: Easy / Medium / Hard",
+    "prerequisites": ["prerequisite 1", "prerequisite 2"]
+}}"""
+        else:
+            system_prompt = (
                 "你是一位专业的教育分析师，擅长分析各类学科题目。"
                 "你必须只输出纯 JSON 格式，不要添加任何 markdown 标记或其他文字。"
-            ),
-            user_prompt=f"""你是一位经验丰富的教师，请分析以下题目：
+            )
+            user_prompt = f"""你是一位经验丰富的教师，请分析以下题目：
 
 题目：{text}
 
@@ -182,34 +222,76 @@ class DeepSeekProvider(BaseModelProvider):
     "knowledgePoints": ["知识点1", "知识点2"],
     "difficulty": "难度等级（简单/中等/困难）",
     "prerequisites": ["前置知识1", "前置知识2"]
-}}""",
+}}"""
+
+        content = self.complete(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
             temperature=0.0,
             max_tokens=512,
         )
 
         try:
             parsed = ChatGLMService._extract_json(content)
+            if self._is_english(locale):
+                return self._coerce_parse_result_en(parsed, text)
             return self._parser._coerce_parse_result(parsed, text)
         except APIError:
             current_app.logger.warning(
                 "DeepSeek 解析返回非标准 JSON，降级提取字段。content=%s",
                 content[:600],
             )
+            if self._is_english(locale):
+                return self._coerce_parse_result_en({}, text)
             return self._parser._extract_fields_from_text(content, text)
 
-    def generate_solution(self, text: str, parse_result: Dict) -> Dict:
+    def generate_solution(self, text: str, parse_result: Dict, locale: str = "en") -> Dict:
         knowledge_points = parse_result.get("knowledgePoints", [])
         if isinstance(knowledge_points, list):
-            knowledge_text = "、".join(str(item) for item in knowledge_points)
+            knowledge_text = (", " if self._is_english(locale) else "、").join(str(item) for item in knowledge_points)
         else:
             knowledge_text = str(knowledge_points)
 
-        content = self.complete(
-            system_prompt=(
+        if self._is_english(locale):
+            system_prompt = (
+                "You are an excellent AI teacher. Return only a valid JSON object. "
+                "Do not output markdown code fences or extra commentary. "
+                "The JSON field values may contain Markdown and LaTeX. "
+                "All user-facing explanation must be in English."
+            )
+            user_prompt = f"""Provide a detailed solution for the following problem.
+
+### Problem
+{text}
+
+### Metadata
+- Problem type: {parse_result.get('type', '')}
+- Subject: {parse_result.get('subject', '')}
+- Core knowledge points: {knowledge_text}
+- Difficulty: {parse_result.get('difficulty', '')}
+
+### Output requirements
+Return exactly one valid, concise JSON object. Do not include markdown code fences, explanatory text outside JSON, or copies of this prompt.
+
+The JSON structure must be exactly:
+{{
+    "thinking": "Write only the reasoning text. Do not include a heading such as Reasoning.",
+    "steps": ["Write only the step content. Do not prefix with Step 1.", "Write only the step content. Do not prefix with Step 2."],
+    "answer": "Write only the final answer. Do not include a heading such as Final Answer.",
+    "summary": "Write only the knowledge summary. Do not include a heading such as Summary."
+}}
+
+Constraints:
+1. `steps` must be an array of strings with at least 2 clear logical steps.
+2. Keep simple problems concise.
+3. Use LaTeX for mathematical expressions: inline $...$ and block $$...$$.
+4. Ensure all newlines and quotes are escaped correctly in JSON strings."""
+        else:
+            system_prompt = (
                 "你是一位优秀的 AI 教师。你必须只输出纯 JSON，"
                 "禁止输出 markdown 代码块和额外说明。JSON 字段内容允许 Markdown 与 LaTeX。"
-            ),
-            user_prompt=f"""你是一位耐心的 AI 教师，针对以下题目提供详细解答。
+            )
+            user_prompt = f"""你是一位耐心的 AI 教师，针对以下题目提供详细解答。
 
 ### 题目内容
 {text}
@@ -236,7 +318,11 @@ JSON 结构必须严格如下：
 2. **数组要求**：`steps` 字段必须是字符串数组，包含至少 2 个明确的逻辑步骤。
 3. **格式规范**：`thinking`、`steps`、`answer` 和 `summary` 字段内容都不要包含章节标题、序号前缀或字段名回显。
 4. **数学公式**：所有数学表达式必须使用 LaTeX 格式：行内公式用 $...$，独立块级公式用 $$...$$。
-5. **JSON 转义**：确保所有换行符和引号在 JSON 字符串中正确转义（使用 \\n）。""",
+5. **JSON 转义**：确保所有换行符和引号在 JSON 字符串中正确转义（使用 \\n）。"""
+
+        content = self.complete(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
             temperature=0.1,
             max_tokens=1200,
         )
@@ -244,23 +330,32 @@ JSON 结构必须严格如下：
         return ChatGLMService.parse_solution_content(content)
 
     def generate_solution_stream(
-        self, text: str, parse_result: Dict
+        self, text: str, parse_result: Dict, locale: str = "en"
     ) -> Generator[str, None, None]:
         knowledge_points = parse_result.get("knowledgePoints", [])
         if isinstance(knowledge_points, list):
-            knowledge_text = "、".join(str(item) for item in knowledge_points)
+            knowledge_text = (", " if self._is_english(locale) else "、").join(str(item) for item in knowledge_points)
         else:
             knowledge_text = str(knowledge_points)
 
-        request_data = self._build_request(
-            messages=[
-                {
-                    "role": "system",
-                    "content": "你是一位优秀的 AI 教师，擅长用清晰、易懂的方式讲解题目。",
-                },
-                {
-                    "role": "user",
-                    "content": f"""你是一位耐心的 AI 教师，请为学生提供详细的解答。
+        if self._is_english(locale):
+            system_content = "You are an excellent AI teacher who explains problems clearly and accessibly. Answer in English."
+            user_content = f"""Provide a detailed solution for the student.
+
+Problem: {text}
+Problem type: {parse_result.get('type', '')}
+Subject: {parse_result.get('subject', '')}
+Knowledge points: {knowledge_text}
+
+Include reasoning, steps, final answer, and a knowledge summary.
+
+Formatting:
+1. Use Markdown;
+2. Use LaTeX for math: inline $...$, block $$...$$;
+3. Do not include unrelated self-reflection."""
+        else:
+            system_content = "你是一位优秀的 AI 教师，擅长用清晰、易懂的方式讲解题目。"
+            user_content = f"""你是一位耐心的 AI 教师，请为学生提供详细的解答。
 
 题目：{text}
 题目类型：{parse_result.get('type', '')}
@@ -272,7 +367,17 @@ JSON 结构必须严格如下：
 格式要求：
 1. 使用 Markdown 组织内容；
 2. 数学公式使用 LaTeX（行内 $...$，块级 $$...$$）；
-3. 不要输出与答案无关的自我反思。""",
+3. 不要输出与答案无关的自我反思。"""
+
+        request_data = self._build_request(
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_content,
+                },
+                {
+                    "role": "user",
+                    "content": user_content,
                 },
             ],
             temperature=0.7,

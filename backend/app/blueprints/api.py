@@ -24,6 +24,16 @@ solve_problem_schema = SolveProblemSchema()
 solve_stream_schema = SolveStreamSchema()
 
 
+def _resolve_locale(payload: dict | None = None) -> str:
+    value = (
+        (payload or {}).get("locale")
+        or request.args.get("locale")
+        or request.headers.get("X-Zenith-Locale")
+        or "en"
+    )
+    return "zh-CN" if value == "zh-CN" else "en"
+
+
 def _iso_now() -> str:
     return datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
 
@@ -78,7 +88,7 @@ def recognize():
 def parse_problem():
     payload = parse_schema.load(request.get_json(silent=True) or {})
     provider = payload.get("provider")
-    result = pipeline_service.parse_only(payload["text"], provider)
+    result = pipeline_service.parse_only(payload["text"], provider, _resolve_locale(payload))
     return jsonify(result)
 
 
@@ -86,7 +96,12 @@ def parse_problem():
 def solve_problem_part():
     payload = solve_schema.load(request.get_json(silent=True) or {})
     provider = payload.get("provider")
-    result = pipeline_service.solve_only(payload["text"], payload["parse_result"], provider)
+    result = pipeline_service.solve_only(
+        payload["text"],
+        payload["parse_result"],
+        provider,
+        _resolve_locale(payload),
+    )
     return jsonify(result)
 
 
@@ -115,6 +130,7 @@ def solve_problem_full():
             "userId": user_id,
             "username": username,
             "provider": provider,
+            "locale": _resolve_locale(json_data),
         }
     )
 
@@ -127,11 +143,13 @@ def solve_stream():
 
     text = payload["text"]
     parse_result = payload["parse_result"]
+    provider = payload.get("provider")
+    locale = _resolve_locale(payload)
 
     @stream_with_context
     def generate():
         try:
-            for chunk in pipeline_service.solve_stream(text, parse_result):
+            for chunk in pipeline_service.solve_stream(text, parse_result, provider, locale):
                 yield f"data: {json.dumps({'content': chunk}, ensure_ascii=False)}\\n\\n"
             yield "data: [DONE]\\n\\n"
         except Exception as exc:  # noqa: BLE001
