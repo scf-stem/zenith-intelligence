@@ -43,7 +43,9 @@ for (const directory of ["css", "js"]) {
     }
 }
 
-const docsPath = join(repoDir, "Docs");
+const docsPath = existsSync(join(rootDir, "Docs"))
+  ? join(rootDir, "Docs")
+  : join(repoDir, "Docs");
 if (existsSync(docsPath)) {
   cpSync(docsPath, join(distDir, "Docs"), { recursive: true });
 }
