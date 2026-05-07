@@ -252,7 +252,11 @@ const LearningApp = {
         try {
             const response = await fetch(path, { cache: 'force-cache' });
             if (!response.ok) return '';
-            return await response.text();
+            const text = await response.text();
+            if (/^\s*<!doctype html/i.test(text) || /^\s*<html[\s>]/i.test(text)) {
+                return '';
+            }
+            return text;
         } catch (error) {
             console.warn('读取本地 Markdown 失败:', error);
             return '';
